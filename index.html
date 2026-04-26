@@ -6,54 +6,53 @@
     <title>딥워크 집중 카메라</title>
     <style>
         :root { --ios-blue: #007AFF; --ios-gray: #f2f2f7; --ios-green: #34c759; --ios-orange: #ff9500; }
-        body { font-family: -apple-system, sans-serif; background: var(--ios-gray); display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; padding-bottom: 50px; }
+        body { font-family: -apple-system, sans-serif; background: var(--ios-gray); display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; padding-bottom: 60px; }
         
-        /* 카메라 영역: 시작 후에는 숨겨짐 */
-        #camContainer { width: 100%; max-width: 500px; overflow: hidden; transition: all 0.5s ease-in-out; border-radius: 24px; background: #000; position: relative; }
-        video#preview { width: 100%; display: block; transform: scaleX(-1); -webkit-transform: scaleX(-1); }
-        
-        /* 녹화 중 인디케이터 (화면이 꺼져도 작게 표시) */
-        .rec-label { position: absolute; top: 20px; left: 20px; color: white; background: rgba(255,0,0,0.8); padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; display: none; }
+        /* 카메라 영역 */
+        #camContainer { width: 100%; max-width: 500px; border-radius: 24px; background: #000; overflow: hidden; }
+        video#preview { width: 100%; display: block; transform: scaleX(-1); }
 
-        .controls { margin: 20px 0; background: white; padding: 15px 25px; border-radius: 35px; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .main-controls { margin: 25px 0; display: flex; flex-direction: column; align-items: center; gap: 15px; width: 100%; max-width: 500px; }
+        .input-group { background: white; padding: 12px 25px; border-radius: 35px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 10px; }
         input { width: 45px; border: none; border-bottom: 2px solid var(--ios-blue); text-align: center; font-size: 1.1rem; font-weight: bold; outline: none; }
         
-        button { padding: 12px 20px; border-radius: 14px; border: none; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        #prepBtn { background: var(--ios-blue); color: white; }
-        #startBtn { background: var(--ios-green); color: white; display: none; }
+        button { padding: 12px 24px; border-radius: 14px; border: none; cursor: pointer; font-weight: bold; }
+        #prepBtn { background: var(--ios-blue); color: white; width: 120px; }
+        #startBtn { background: var(--ios-green); color: white; width: 120px; display: none; }
+        #toggleLogBtn { background: white; color: #555; border: 1px solid #ddd; margin-top: 10px; font-size: 0.9rem; width: 100%; max-width: 500px; }
 
+        /* 카드 및 평가 영역 */
         .card { width: 100%; max-width: 500px; background: white; border-radius: 24px; padding: 20px; box-sizing: border-box; margin-top: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
         .score-group { display: flex; justify-content: center; gap: 8px; margin: 15px 0; }
-        .score-btn { background: var(--ios-gray); width: 42px; height: 42px; border-radius: 50%; border: none; font-weight: bold; }
+        .score-btn { background: var(--ios-gray); width: 40px; height: 40px; border-radius: 50%; font-weight: bold; border: none; }
         .selected { background: var(--ios-blue) !important; color: white; }
 
-        /* 히스토리 아이템 */
-        .history-item { border-bottom: 1px solid #eee; padding: 25px 0; display: flex; flex-direction: column; gap: 15px; }
-        video.recorded-view { width: 100%; border-radius: 16px; background: #000; height: auto; }
-        .badge { padding: 4px 10px; border-radius: 8px; font-size: 0.8rem; font-weight: bold; margin-right: 5px; }
-        .badge-self { background: #e5f1ff; color: var(--ios-blue); }
-        .badge-parent { background: #fff4e5; color: var(--ios-orange); }
+        /* 히스토리 섹션 */
+        #historySection { display: none; width: 100%; max-width: 500px; }
+        .history-item { border-bottom: 1px solid #eee; padding: 20px 0; display: flex; flex-direction: column; gap: 12px; }
+        video.recorded-view { width: 100%; border-radius: 16px; background: #000; }
+        .badge { padding: 4px 10px; border-radius: 8px; font-size: 0.8rem; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <h2 id="todayDate">📅 집중 모드</h2>
     
-    <div id="camContainer" style="height: 0px;">
-        <div class="rec-label" id="recLabel">● REC</div>
+    <div id="camContainer">
         <video id="preview" autoplay muted playsinline></video>
     </div>
 
-    <div class="controls">
-        <div id="setupControls">
+    <div class="main-controls">
+        <div class="input-group" id="setupControls">
             <input type="number" id="minutes" value="1"> 분 
             <button id="prepBtn">준비</button>
             <button id="startBtn">시작</button>
         </div>
+        <button id="toggleLogBtn" onclick="toggleHistory()">📜 기록 보기</button>
     </div>
 
     <div class="card" id="evaluationArea" style="display: none; text-align: center;">
-        <h3 style="margin:0">녹화 완료! 본인 점수</h3>
+        <h3 style="margin:0">수고했어! 너의 점수는?</h3>
         <div class="score-group">
             <button class="score-btn" onclick="setTempScore(1)">1</button>
             <button class="score-btn" onclick="setTempScore(2)">2</button>
@@ -61,138 +60,191 @@
             <button class="score-btn" onclick="setTempScore(4)">4</button>
             <button class="score-btn" onclick="setTempScore(5)">5</button>
         </div>
-        <button id="saveBtn" style="width:100%; background: var(--ios-blue); color:white; padding:15px; border-radius:15px;">기록 저장</button>
+        <button onclick="saveLogToDB()" style="width:100%; background: var(--ios-blue); color:white; padding:15px; border-radius:15px; font-weight:bold;">기록 저장하기</button>
     </div>
 
-    <div class="card">
-        <h3 style="margin-top:0">오늘의 로그</h3>
-        <div id="historyList"></div>
+    <div id="historySection">
+        <div class="card">
+            <h3 style="margin-top:0">오늘의 로그</h3>
+            <div id="historyList"></div>
+        </div>
     </div>
 
     <script>
+        let db;
+        let stream;
         let mediaRecorder;
         let recordedChunks = [];
-        let selfScore = 0;
-        let tempVideoUrl = null;
         let startTime = "";
-        let stream = null;
+        let selfScore = 0;
+        let currentBlob = null;
 
-        function playBeep() {
+        // 1. IndexedDB 설정 (영상 영구 보관용)
+        const request = indexedDB.open("FocusDB", 1);
+        request.onupgradeneeded = (e) => {
+            db = e.target.result;
+            db.createObjectStore("logs", { keyPath: "id" });
+        };
+        request.onsuccess = (e) => {
+            db = e.target.result;
+            checkDailyReset();
+        };
+
+        // 2. 알람음 (종료 시 3번 울림)
+        function playAlarm() {
             const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.connect(gain); gain.connect(ctx.destination);
-            osc.frequency.setValueAtTime(660, ctx.currentTime);
-            gain.gain.setValueAtTime(0, ctx.currentTime);
-            gain.gain.linearRampToValueAtTime(0.5, ctx.currentTime + 0.05);
-            osc.start(); osc.stop(ctx.currentTime + 0.3);
+            const playTone = (freq, start) => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
+                gain.gain.setValueAtTime(0, ctx.currentTime + start);
+                gain.gain.linearRampToValueAtTime(0.5, ctx.currentTime + start + 0.05);
+                osc.start(ctx.currentTime + start);
+                osc.stop(ctx.currentTime + start + 0.3);
+            };
+            playTone(880, 0); playTone(880, 0.4); playTone(1200, 0.8);
         }
 
-        // 1. 준비 버튼: 카메라만 켬
+        // 3. 카메라 준비
         document.getElementById('prepBtn').onclick = async function() {
             try {
                 stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: true });
-                const preview = document.getElementById('preview');
-                preview.srcObject = stream;
-                document.getElementById('camContainer').style.height = "auto";
+                document.getElementById('preview').srcObject = stream;
                 this.style.display = "none";
                 document.getElementById('startBtn').style.display = "inline-block";
-            } catch (e) { alert("카메라 권한을 확인해주세요."); }
+            } catch (e) { alert("카메라 권한을 허용해주세요."); }
         };
 
-        // 2. 시작 버튼: 녹화 시작 및 카메라 숨김
+        // 4. 녹화 시작 (카메라 숨김)
         document.getElementById('startBtn').onclick = function() {
             this.disabled = true;
-            this.innerText = "집중 중...";
+            this.innerText = "기록 중...";
             startTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-            // 카메라 숨기기 (로직은 돌지만 화면만 안보임)
-            document.getElementById('camContainer').style.height = "40px"; // 아주 얇게만 표시하거나 0으로 가능
-            document.getElementById('recLabel').style.display = "block";
+            
+            // 카메라 완전 숨김
+            document.getElementById('camContainer').style.display = "none";
+            document.getElementById('toggleLogBtn').style.display = "none";
 
             recordedChunks = [];
-            mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/mp4' });
-            mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
-            
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.ondataavailable = (e) => recordedChunks.push(e.data);
             mediaRecorder.onstop = () => {
-                playBeep();
-                const blob = new Blob(recordedChunks, { type: 'video/mp4' });
-                tempVideoUrl = URL.createObjectURL(blob);
+                playAlarm();
+                currentBlob = new Blob(recordedChunks, { type: 'video/mp4' });
                 document.getElementById('evaluationArea').style.display = 'block';
-                document.getElementById('setupControls').parentElement.style.display = 'none';
+                document.getElementById('setupControls').style.display = 'none';
             };
 
             mediaRecorder.start();
             setTimeout(() => {
-                if (mediaRecorder.state === "recording") {
+                if(mediaRecorder.state === "recording") {
                     mediaRecorder.stop();
                     stream.getTracks().forEach(t => t.stop());
                 }
             }, document.getElementById('minutes').value * 60000);
         };
 
+        // 5. 점수 및 저장
         function setTempScore(s) {
             selfScore = s;
-            document.querySelectorAll('#evaluationArea .score-btn').forEach((b, i) => b.classList.toggle('selected', i+1===s));
+            document.querySelectorAll('.score-btn').forEach((b, i) => b.classList.toggle('selected', i+1===s));
         }
 
-        document.getElementById('saveBtn').onclick = function() {
+        async function saveLogToDB() {
             if(!selfScore) return alert("점수를 골라주세요!");
-            const logs = JSON.parse(localStorage.getItem('focusLogs') || "[]");
-            logs.unshift({ id: Date.now(), time: startTime, selfScore, parentScore: null, video: tempVideoUrl });
-            localStorage.setItem('focusLogs', JSON.stringify(logs));
-            location.reload(); // 화면 깔끔하게 리프레시
-        };
+            const logData = {
+                id: Date.now(),
+                date: new Date().toLocaleDateString(),
+                time: startTime,
+                selfScore: selfScore,
+                parentScore: null,
+                videoBlob: currentBlob
+            };
+            const tx = db.transaction("logs", "readwrite");
+            tx.objectStore("logs").add(logData);
+            tx.oncomplete = () => location.reload();
+        }
 
-        window.giveParentScore = (id, score) => {
-            const logs = JSON.parse(localStorage.getItem('focusLogs'));
-            const idx = logs.findIndex(l => l.id == id);
-            logs[idx].parentScore = score;
-            localStorage.setItem('focusLogs', JSON.stringify(logs));
-            renderHistory();
-        };
+        // 6. 기록 보기/닫기 및 렌더링
+        async function toggleHistory() {
+            const section = document.getElementById('historySection');
+            const btn = document.getElementById('toggleLogBtn');
+            if (section.style.display === "none" || section.style.display === "") {
+                section.style.display = "block";
+                btn.innerText = "🙈 기록 닫기";
+                renderHistory();
+            } else {
+                section.style.display = "none";
+                btn.innerText = "📜 기록 보기";
+            }
+        }
 
-        function renderHistory() {
-            const logs = JSON.parse(localStorage.getItem('focusLogs') || "[]");
+        async function renderHistory() {
             const listDiv = document.getElementById('historyList');
+            const tx = db.transaction("logs", "readonly");
+            const store = tx.objectStore("logs");
+            const allLogs = await new Promise(res => store.getAll().onsuccess = (e) => res(e.target.result));
+            
+            const today = new Date().toLocaleDateString();
+            const logs = allLogs.filter(l => l.date === today).reverse();
+
             if(!logs.length) { listDiv.innerHTML = '<p style="color:#999;text-align:center;">오늘 기록이 없어요.</p>'; return; }
 
-            listDiv.innerHTML = logs.map(log => `
+            listDiv.innerHTML = logs.map(log => {
+                const videoUrl = URL.createObjectURL(log.videoBlob);
+                return `
                 <div class="history-item">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
                         <span style="font-weight:bold;">🕒 ${log.time}</span>
                         <div>
-                            <span class="badge badge-self">아이: ${log.selfScore}점</span>
-                            ${log.parentScore ? `<span class="badge badge-parent">부모: ${log.parentScore}점</span>` : ''}
+                            <span class="badge" style="background:#e5f1ff; color:#007AFF;">아이: ${log.selfScore}</span>
+                            ${log.parentScore ? `<span class="badge" style="background:#fff4e5; color:#ff9500;">부모: ${log.parentScore}</span>` : ''}
                         </div>
                     </div>
-                    <video class="recorded-view" id="vid-${log.id}" src="${log.video}" controls playsinline preload="metadata"></video>
-                    <div style="font-size:0.8rem; color:var(--ios-blue);">
+                    <video class="recorded-view" id="vid-${log.id}" src="${videoUrl}" controls playsinline></video>
+                    <div style="font-size:0.8rem; margin-top:5px;">
                         배속: <button onclick="setSpeed('vid-${log.id}',1)">1x</button>
                         <button onclick="setSpeed('vid-${log.id}',2)">2x</button>
                         <button onclick="setSpeed('vid-${log.id}',4)">4x</button>
                     </div>
                     ${!log.parentScore ? `
-                        <div style="background:#f9f9f9; padding:12px; border-radius:12px; margin-top:5px;">
-                            <div style="font-size:0.8rem; margin-bottom:5px;">👨‍👩‍👧 부모님 확인 점수:</div>
-                            <div style="display:flex; gap:5px;">
-                                ${[1,2,3,4,5].map(s => `<button class="score-btn" style="width:32px; height:32px; font-size:0.8rem;" onclick="giveParentScore(${log.id}, ${s})">${s}</button>`).join('')}
-                            </div>
+                        <div style="background:#f9f9f9; padding:10px; border-radius:12px; margin-top:10px; text-align:center;">
+                            <div style="font-size:0.75rem; margin-bottom:5px;">👨‍👩‍👧 부모님 점수</div>
+                            ${[1,2,3,4,5].map(s => `<button class="score-btn" style="width:30px; height:30px; font-size:0.75rem; margin:2px;" onclick="saveParentScore(${log.id}, ${s})">${s}</button>`).join('')}
                         </div>
                     ` : ''}
-                </div>
-            `).join('');
+                </div>`;
+            }).join('');
         }
+
+        window.saveParentScore = (id, score) => {
+            const tx = db.transaction("logs", "readwrite");
+            const store = tx.objectStore("logs");
+            store.get(id).onsuccess = (e) => {
+                const data = e.target.result;
+                data.parentScore = score;
+                store.put(data);
+                renderHistory();
+            };
+        };
 
         window.setSpeed = (id, s) => {
             const v = document.getElementById(id);
             v.playbackRate = s;
-            v.play(); // 배속 설정 시 자동 재생으로 싱크 맞춤
+            v.play();
         };
 
-        const today = new Date().toLocaleDateString();
-        if(localStorage.getItem('lastDate') !== today) { localStorage.removeItem('focusLogs'); localStorage.setItem('lastDate', today); }
-        renderHistory();
+        function checkDailyReset() {
+            const tx = db.transaction("logs", "readwrite");
+            const store = tx.objectStore("logs");
+            const today = new Date().toLocaleDateString();
+            store.getAll().onsuccess = (e) => {
+                e.target.result.forEach(log => {
+                    if(log.date !== today) store.delete(log.id);
+                });
+            };
+        }
     </script>
 </body>
 </html>
