@@ -7,18 +7,31 @@
     <style>
         :root { --ios-blue: #007AFF; --ios-gray: #f2f2f7; --ios-green: #34c759; }
         body { font-family: -apple-system, sans-serif; background: var(--ios-gray); display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; }
-        #camContainer { width: 100%; max-width: 500px; border-radius: 24px; background: #000; overflow: hidden; }
+        
+        #camContainer { width: 100%; max-width: 500px; border-radius: 24px; background: #000; overflow: hidden; height: auto; transition: height 0.3s; }
         video { width: 100%; display: block; background: #000; }
         #preview { transform: scaleX(-1); }
-        .controls { margin: 20px 0; background: white; padding: 15px 25px; border-radius: 35px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+
+        .controls { margin: 20px 0; background: white; padding: 15px 25px; border-radius: 35px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); display: flex; align-items: center; }
         input { width: 45px; border: none; border-bottom: 2px solid var(--ios-blue); text-align: center; font-size: 1.1rem; font-weight: bold; outline: none; }
-        button { padding: 12px 20px; border-radius: 14px; border: none; cursor: pointer; font-weight: bold; margin: 0 5px; }
+        
+        button { padding: 12px 20px; border-radius: 14px; border: none; cursor: pointer; font-weight: bold; margin: 0 5px; transition: opacity 0.2s; }
+        button:active { opacity: 0.6; } /* 클릭 시 시각적 효과 */
+
         .btn-prep { background: var(--ios-blue); color: white; }
         .btn-start { background: var(--ios-green); color: white; display: none; }
+
         .card { width: 100%; max-width: 500px; background: white; border-radius: 24px; padding: 20px; box-sizing: border-box; margin-top: 15px; text-align: center; }
+        
+        /* 기록 보기 버튼 강조 */
+        #toggleLogBtn { 
+            background: white; border: 1px solid #ccc; width: 100%; max-width: 500px; 
+            padding: 15px; margin-top: 10px; font-size: 1rem; color: #333; z-index: 100;
+        }
+
         #historySection { display: none; width: 100%; max-width: 500px; }
-        .history-item { border-bottom: 1px solid #eee; padding: 20px 0; }
-        video.recorded-view { width: 100%; border-radius: 16px; margin-top: 10px; }
+        .history-item { border-bottom: 1px solid #eee; padding: 20px 0; text-align: left; }
+        video.recorded-view { width: 100%; border-radius: 16px; margin-top: 10px; background: #000; }
     </style>
 </head>
 <body>
@@ -29,25 +42,30 @@
         <video id="preview" autoplay muted playsinline></video>
     </div>
 
-    <div class="controls">
+    <div class="controls" id="mainControls">
         <input type="number" id="minutes" value="1"> 분
         <button id="prepBtn" class="btn-prep">준비</button>
         <button id="startBtn" class="btn-start">시작</button>
     </div>
 
-    <button id="toggleLogBtn" onclick="toggleHistory()" style="background:white; border:1px solid #ddd; width:100%; max-width:500px;">📜 기록 보기</button>
+    <button id="toggleLogBtn">📜 기록 보기</button>
 
     <div class="card" id="evaluationArea" style="display: none;">
         <h3>수고했어! 점수를 골라줘</h3>
-        <div id="scoreBtns">
-            <button onclick="saveResult(1)">1</button><button onclick="saveResult(2)">2</button>
-            <button onclick="saveResult(3)">3</button><button onclick="saveResult(4)">4</button>
-            <button onclick="saveResult(5)">5</button>
+        <div style="display: flex; justify-content: center; gap: 10px;">
+            <button onclick="saveResult(1)" style="background:#eee">1</button>
+            <button onclick="saveResult(2)" style="background:#eee">2</button>
+            <button onclick="saveResult(3)" style="background:#eee">3</button>
+            <button onclick="saveResult(4)" style="background:#eee">4</button>
+            <button onclick="saveResult(5)" style="background:#eee">5</button>
         </div>
     </div>
 
     <div id="historySection">
-        <div id="historyList"></div>
+        <div class="card">
+            <h3 style="margin-top:0">오늘의 로그</h3>
+            <div id="historyList"></div>
+        </div>
     </div>
 
     <script>
@@ -57,18 +75,18 @@
         let chunks = [];
         let startTime = "";
 
-        // DB 연결 최적화
-        const req = indexedDB.open("StableFocusDB", 3);
+        // DB 연결
+        const req = indexedDB.open("StableFocusDB", 4);
         req.onupgradeneeded = (e) => {
             db = e.target.result;
             if(!db.objectStoreNames.contains("logs")) db.createObjectStore("logs", { keyPath: "id" });
         };
-        req.onsuccess = (e) => db = e.target.result;
+        req.onsuccess = (e) => { db = e.target.result; };
 
         // 알람음
         function playFinishAlarm() {
             const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            [660, 660, 880].forEach((f, i) => {
+            [660, 880].forEach((f, i) => {
                 const o = ctx.createOscillator();
                 const g = ctx.createGain();
                 o.connect(g); g.connect(ctx.destination);
@@ -79,78 +97,88 @@
             });
         }
 
-        document.getElementById('prepBtn').onclick = async () => {
-            stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            document.getElementById('preview').srcObject = stream;
-            document.getElementById('prepBtn').style.display = "none";
-            document.getElementById('startBtn').style.display = "inline-block";
-        };
+        // 준비 버튼
+        document.getElementById('prepBtn').addEventListener('click', async () => {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                document.getElementById('preview').srcObject = stream;
+                document.getElementById('prepBtn').style.display = "none";
+                document.getElementById('startBtn').style.display = "inline-block";
+            } catch(e) { alert("카메라를 켤 수 없습니다."); }
+        });
 
-        document.getElementById('startBtn').onclick = () => {
+        // 시작 버튼
+        document.getElementById('startBtn').addEventListener('click', () => {
             startTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             document.getElementById('camContainer').style.display = "none";
-            document.getElementById('startBtn').disabled = true;
-            document.getElementById('startBtn').innerText = "기록 중...";
+            document.getElementById('mainControls').style.display = "none";
+            document.getElementById('toggleLogBtn').style.display = "none";
 
             chunks = [];
-            // 아이패드 호환성을 위한 최적 코덱 선언
-            const options = { mimeType: 'video/mp4;codecs=avc1' };
-            mediaRecorder = new MediaRecorder(stream, MediaRecorder.isTypeSupported(options.mimeType) ? options : {});
-
+            mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/mp4;codecs=avc1' });
             mediaRecorder.ondataavailable = (e) => { if(e.data.size > 0) chunks.push(e.data); };
             mediaRecorder.onstop = () => {
                 playFinishAlarm();
                 document.getElementById('evaluationArea').style.display = "block";
             };
 
-            mediaRecorder.start(1000); // 1초 단위로 데이터를 쪼개서 수집 (멈춤 방지)
+            mediaRecorder.start(1000);
             setTimeout(() => {
                 if(mediaRecorder.state === "recording") {
                     mediaRecorder.stop();
                     stream.getTracks().forEach(t => t.stop());
                 }
             }, document.getElementById('minutes').value * 60000);
-        };
+        });
 
+        // 결과 저장
         async function saveResult(score) {
             const blob = new Blob(chunks, { type: 'video/mp4' });
-            // Blob을 ArrayBuffer로 변환하여 DB에 직접 저장 (사파리 재생 안정성 핵심)
             const arrayBuffer = await blob.arrayBuffer();
-            
-            const log = {
-                id: Date.now(),
-                date: new Date().toLocaleDateString(),
-                time: startTime,
-                score: score,
-                video: arrayBuffer
-            };
-
+            const log = { id: Date.now(), date: new Date().toLocaleDateString(), time: startTime, score: score, video: arrayBuffer };
             const tx = db.transaction("logs", "readwrite");
             tx.objectStore("logs").add(log);
             tx.oncomplete = () => location.reload();
         }
 
+        // 기록 보기 토글 (addEventListener로 변경하여 더 확실하게 작동)
+        document.getElementById('toggleLogBtn').addEventListener('click', () => {
+            const sec = document.getElementById('historySection');
+            const btn = document.getElementById('toggleLogBtn');
+            
+            if(sec.style.display === "block") {
+                sec.style.display = "none";
+                btn.innerText = "📜 기록 보기";
+            } else {
+                sec.style.display = "block";
+                btn.innerText = "🙈 기록 닫기";
+                renderHistory();
+            }
+        });
+
         async function renderHistory() {
             const list = document.getElementById('historyList');
             const tx = db.transaction("logs", "readonly");
-            const logs = await new Promise(res => tx.objectStore("logs").getAll().onsuccess = (e) => res(e.target.result));
+            const store = tx.objectStore("logs");
+            const logs = await new Promise(res => store.getAll().onsuccess = (e) => res(e.target.result));
             
             const today = new Date().toLocaleDateString();
-            list.innerHTML = logs.filter(l => l.date === today).reverse().map(l => {
+            const todayLogs = logs.filter(l => l.date === today).reverse();
+
+            if(todayLogs.length === 0) {
+                list.innerHTML = "<p>오늘 기록된 영상이 없습니다.</p>";
+                return;
+            }
+
+            list.innerHTML = todayLogs.map(l => {
                 const url = URL.createObjectURL(new Blob([l.video], { type: 'video/mp4' }));
                 return `
                     <div class="history-item">
-                        <strong>🕒 ${l.time} (점수: ${l.score})</strong>
+                        <strong>🕒 ${l.time} - 점수: ${l.score}점</strong><br>
                         <video src="${url}" class="recorded-view" controls playsinline preload="metadata"></video>
                     </div>
                 `;
             }).join('');
-        }
-
-        function toggleHistory() {
-            const sec = document.getElementById('historySection');
-            if(sec.style.display === "block") sec.style.display = "none";
-            else { sec.style.display = "block"; renderHistory(); }
         }
     </script>
 </body>
