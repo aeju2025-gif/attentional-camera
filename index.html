@@ -3,131 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>딥워크 집중 카메라 v2</title>
+    <title>안정적인 집중 카메라</title>
     <style>
-        :root { --ios-blue: #007AFF; --ios-gray: #f2f2f7; --ios-green: #34c759; --ios-orange: #ff9500; }
-        body { font-family: -apple-system, sans-serif; background: var(--ios-gray); display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; padding-bottom: 60px; }
-        
-        #camContainer { width: 100%; max-width: 500px; border-radius: 24px; background: #000; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        video#preview { width: 100%; display: block; transform: scaleX(-1); }
-
-        .main-controls { margin: 25px 0; display: flex; flex-direction: column; align-items: center; gap: 15px; width: 100%; max-width: 500px; }
-        .input-group { background: white; padding: 12px 25px; border-radius: 35px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 10px; }
+        :root { --ios-blue: #007AFF; --ios-gray: #f2f2f7; --ios-green: #34c759; }
+        body { font-family: -apple-system, sans-serif; background: var(--ios-gray); display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; }
+        #camContainer { width: 100%; max-width: 500px; border-radius: 24px; background: #000; overflow: hidden; }
+        video { width: 100%; display: block; background: #000; }
+        #preview { transform: scaleX(-1); }
+        .controls { margin: 20px 0; background: white; padding: 15px 25px; border-radius: 35px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
         input { width: 45px; border: none; border-bottom: 2px solid var(--ios-blue); text-align: center; font-size: 1.1rem; font-weight: bold; outline: none; }
-        
-        button { padding: 12px 24px; border-radius: 14px; border: none; cursor: pointer; font-weight: bold; }
-        #prepBtn { background: var(--ios-blue); color: white; width: 120px; }
-        #startBtn { background: var(--ios-green); color: white; width: 120px; display: none; }
-        #toggleLogBtn { background: white; color: #555; border: 1px solid #ddd; margin-top: 10px; font-size: 0.9rem; width: 100%; max-width: 500px; }
-
-        .card { width: 100%; max-width: 500px; background: white; border-radius: 24px; padding: 20px; box-sizing: border-box; margin-top: 15px; }
-        .score-group { display: flex; justify-content: center; gap: 8px; margin: 15px 0; }
-        .score-btn { background: var(--ios-gray); width: 40px; height: 40px; border-radius: 50%; font-weight: bold; border: none; }
-        .selected { background: var(--ios-blue) !important; color: white; }
-
+        button { padding: 12px 20px; border-radius: 14px; border: none; cursor: pointer; font-weight: bold; margin: 0 5px; }
+        .btn-prep { background: var(--ios-blue); color: white; }
+        .btn-start { background: var(--ios-green); color: white; display: none; }
+        .card { width: 100%; max-width: 500px; background: white; border-radius: 24px; padding: 20px; box-sizing: border-box; margin-top: 15px; text-align: center; }
         #historySection { display: none; width: 100%; max-width: 500px; }
-        .history-item { border-bottom: 1px solid #eee; padding: 20px 0; display: flex; flex-direction: column; gap: 12px; }
-        video.recorded-view { width: 100%; border-radius: 16px; background: #000; -webkit-transform: translateZ(0); } /* 아이패드 가속 활성 */
-        .badge { padding: 4px 10px; border-radius: 8px; font-size: 0.8rem; font-weight: bold; }
+        .history-item { border-bottom: 1px solid #eee; padding: 20px 0; }
+        video.recorded-view { width: 100%; border-radius: 16px; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-    <h2 id="todayDate">📅 집중 모드</h2>
+    <h2>📅 집중 모드</h2>
     
     <div id="camContainer">
         <video id="preview" autoplay muted playsinline></video>
     </div>
 
-    <div class="main-controls">
-        <div class="input-group" id="setupControls">
-            <input type="number" id="minutes" value="1"> 분 
-            <button id="prepBtn">준비</button>
-            <button id="startBtn">시작</button>
-        </div>
-        <button id="toggleLogBtn" onclick="toggleHistory()">📜 기록 보기</button>
+    <div class="controls">
+        <input type="number" id="minutes" value="1"> 분
+        <button id="prepBtn" class="btn-prep">준비</button>
+        <button id="startBtn" class="btn-start">시작</button>
     </div>
 
-    <div class="card" id="evaluationArea" style="display: none; text-align: center;">
-        <h3 style="margin:0">수고했어! 집중 점수는?</h3>
-        <div class="score-group">
-            <button class="score-btn" onclick="setTempScore(1)">1</button>
-            <button class="score-btn" onclick="setTempScore(2)">2</button>
-            <button class="score-btn" onclick="setTempScore(3)">3</button>
-            <button class="score-btn" onclick="setTempScore(4)">4</button>
-            <button class="score-btn" onclick="setTempScore(5)">5</button>
+    <button id="toggleLogBtn" onclick="toggleHistory()" style="background:white; border:1px solid #ddd; width:100%; max-width:500px;">📜 기록 보기</button>
+
+    <div class="card" id="evaluationArea" style="display: none;">
+        <h3>수고했어! 점수를 골라줘</h3>
+        <div id="scoreBtns">
+            <button onclick="saveResult(1)">1</button><button onclick="saveResult(2)">2</button>
+            <button onclick="saveResult(3)">3</button><button onclick="saveResult(4)">4</button>
+            <button onclick="saveResult(5)">5</button>
         </div>
-        <button onclick="saveLogToDB()" style="width:100%; background: var(--ios-blue); color:white; padding:15px; border-radius:15px; font-weight:bold;">기록 저장하기</button>
     </div>
 
     <div id="historySection">
-        <div class="card">
-            <h3 style="margin-top:0">오늘의 로그</h3>
-            <div id="historyList"></div>
-        </div>
+        <div id="historyList"></div>
     </div>
 
     <script>
         let db;
         let stream;
         let mediaRecorder;
-        let recordedChunks = [];
+        let chunks = [];
         let startTime = "";
-        let selfScore = 0;
 
-        // DB 연결
-        const request = indexedDB.open("DeepWorkDB", 2);
-        request.onupgradeneeded = (e) => {
+        // DB 연결 최적화
+        const req = indexedDB.open("StableFocusDB", 3);
+        req.onupgradeneeded = (e) => {
             db = e.target.result;
             if(!db.objectStoreNames.contains("logs")) db.createObjectStore("logs", { keyPath: "id" });
         };
-        request.onsuccess = (e) => db = e.target.result;
+        req.onsuccess = (e) => db = e.target.result;
 
-        function playAlarm() {
+        // 알람음
+        function playFinishAlarm() {
             const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const t = ctx.currentTime;
-            const beep = (f, s) => {
-                const o = ctx.createOscillator(); const g = ctx.createGain();
+            [660, 660, 880].forEach((f, i) => {
+                const o = ctx.createOscillator();
+                const g = ctx.createGain();
                 o.connect(g); g.connect(ctx.destination);
-                o.frequency.setValueAtTime(f, t+s); g.gain.setValueAtTime(0, t+s);
-                g.gain.linearRampToValueAtTime(0.5, t+s+0.05); o.start(t+s); o.stop(t+s+0.3);
-            };
-            beep(880, 0); beep(880, 0.4); beep(1200, 0.8);
+                o.frequency.value = f;
+                g.gain.setValueAtTime(0, ctx.currentTime + i*0.3);
+                g.gain.linearRampToValueAtTime(0.3, ctx.currentTime + i*0.3 + 0.05);
+                o.start(ctx.currentTime + i*0.3); o.stop(ctx.currentTime + i*0.3 + 0.2);
+            });
         }
 
-        document.getElementById('prepBtn').onclick = async function() {
-            try {
-                stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: "user" }, 
-                    audio: true 
-                });
-                document.getElementById('preview').srcObject = stream;
-                this.style.display = "none";
-                document.getElementById('startBtn').style.display = "inline-block";
-            } catch (e) { alert("카메라 권한을 확인해주세요."); }
+        document.getElementById('prepBtn').onclick = async () => {
+            stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            document.getElementById('preview').srcObject = stream;
+            document.getElementById('prepBtn').style.display = "none";
+            document.getElementById('startBtn').style.display = "inline-block";
         };
 
-        document.getElementById('startBtn').onclick = function() {
-            this.disabled = true;
-            this.innerText = "기록 중...";
+        document.getElementById('startBtn').onclick = () => {
             startTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            
             document.getElementById('camContainer').style.display = "none";
-            document.getElementById('toggleLogBtn').style.display = "none";
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('startBtn').innerText = "기록 중...";
 
-            recordedChunks = [];
-            // 사파리 최적화 코덱 설정
+            chunks = [];
+            // 아이패드 호환성을 위한 최적 코덱 선언
             const options = { mimeType: 'video/mp4;codecs=avc1' };
             mediaRecorder = new MediaRecorder(stream, MediaRecorder.isTypeSupported(options.mimeType) ? options : {});
-            
-            mediaRecorder.ondataavailable = (e) => { if(e.data.size > 0) recordedChunks.push(e.data); };
+
+            mediaRecorder.ondataavailable = (e) => { if(e.data.size > 0) chunks.push(e.data); };
             mediaRecorder.onstop = () => {
-                playAlarm();
-                document.getElementById('evaluationArea').style.display = 'block';
-                document.getElementById('setupControls').style.display = 'none';
+                playFinishAlarm();
+                document.getElementById('evaluationArea').style.display = "block";
             };
 
-            mediaRecorder.start();
+            mediaRecorder.start(1000); // 1초 단위로 데이터를 쪼개서 수집 (멈춤 방지)
             setTimeout(() => {
                 if(mediaRecorder.state === "recording") {
                     mediaRecorder.stop();
@@ -136,100 +112,46 @@
             }, document.getElementById('minutes').value * 60000);
         };
 
-        function setTempScore(s) {
-            selfScore = s;
-            document.querySelectorAll('.score-btn').forEach((b, i) => b.classList.toggle('selected', i+1===s));
-        }
-
-        async function saveLogToDB() {
-            if(!selfScore) return alert("점수를 골라주세요!");
+        async function saveResult(score) {
+            const blob = new Blob(chunks, { type: 'video/mp4' });
+            // Blob을 ArrayBuffer로 변환하여 DB에 직접 저장 (사파리 재생 안정성 핵심)
+            const arrayBuffer = await blob.arrayBuffer();
             
-            // 영상을 ArrayBuffer로 변환하여 저장 (안정성 확보)
-            const blob = new Blob(recordedChunks, { type: 'video/mp4' });
-            const buffer = await blob.arrayBuffer();
-
-            const logData = {
+            const log = {
                 id: Date.now(),
                 date: new Date().toLocaleDateString(),
                 time: startTime,
-                selfScore: selfScore,
-                parentScore: null,
-                videoData: buffer // Blob이 아닌 데이터 원본 저장
+                score: score,
+                video: arrayBuffer
             };
-            
+
             const tx = db.transaction("logs", "readwrite");
-            tx.objectStore("logs").add(logData);
+            tx.objectStore("logs").add(log);
             tx.oncomplete = () => location.reload();
         }
 
-        async function toggleHistory() {
-            const section = document.getElementById('historySection');
-            const btn = document.getElementById('toggleLogBtn');
-            if (section.style.display === "none" || section.style.display === "") {
-                section.style.display = "block";
-                btn.innerText = "🙈 기록 닫기";
-                renderHistory();
-            } else {
-                section.style.display = "none";
-                btn.innerText = "📜 기록 보기";
-            }
-        }
-
         async function renderHistory() {
-            const listDiv = document.getElementById('historyList');
+            const list = document.getElementById('historyList');
             const tx = db.transaction("logs", "readonly");
-            const store = tx.objectStore("logs");
-            const allLogs = await new Promise(res => store.getAll().onsuccess = (e) => res(e.target.result));
+            const logs = await new Promise(res => tx.objectStore("logs").getAll().onsuccess = (e) => res(e.target.result));
             
             const today = new Date().toLocaleDateString();
-            const logs = allLogs.filter(l => l.date === today).reverse();
-
-            if(!logs.length) { listDiv.innerHTML = '<p style="color:#999;text-align:center;">기록이 없습니다.</p>'; return; }
-
-            listDiv.innerHTML = logs.map(log => {
-                const blob = new Blob([log.videoData], { type: 'video/mp4' });
-                const videoUrl = URL.createObjectURL(blob);
+            list.innerHTML = logs.filter(l => l.date === today).reverse().map(l => {
+                const url = URL.createObjectURL(new Blob([l.video], { type: 'video/mp4' }));
                 return `
-                <div class="history-item">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                        <span style="font-weight:bold;">🕒 ${log.time}</span>
-                        <div>
-                            <span class="badge" style="background:#e5f1ff; color:#007AFF;">아이: ${log.selfScore}</span>
-                            ${log.parentScore ? `<span class="badge" style="background:#fff4e5; color:#ff9500;">부모: ${log.parentScore}</span>` : ''}
-                        </div>
+                    <div class="history-item">
+                        <strong>🕒 ${l.time} (점수: ${l.score})</strong>
+                        <video src="${url}" class="recorded-view" controls playsinline preload="metadata"></video>
                     </div>
-                    <video class="recorded-view" id="vid-${log.id}" src="${videoUrl}" controls playsinline preload="metadata"></video>
-                    <div style="font-size:0.8rem; margin-top:5px;">
-                        배속: <button onclick="setSpeed('vid-${log.id}',1)">1x</button>
-                        <button onclick="setSpeed('vid-${log.id}',2)">2x</button>
-                        <button onclick="setSpeed('vid-${log.id}',4)">4x</button>
-                    </div>
-                    ${!log.parentScore ? `
-                        <div style="background:#f9f9f9; padding:10px; border-radius:12px; margin-top:10px; text-align:center;">
-                            <div style="font-size:0.75rem; margin-bottom:5px;">👨‍👩‍👧 부모님 점수</div>
-                            ${[1,2,3,4,5].map(s => `<button class="score-btn" style="width:30px; height:30px; font-size:0.75rem; margin:2px;" onclick="saveParentScore(${log.id}, ${s})">${s}</button>`).join('')}
-                        </div>
-                    ` : ''}
-                </div>`;
+                `;
             }).join('');
         }
 
-        window.saveParentScore = (id, score) => {
-            const tx = db.transaction("logs", "readwrite");
-            const store = tx.objectStore("logs");
-            store.get(id).onsuccess = (e) => {
-                const data = e.target.result;
-                data.parentScore = score;
-                store.put(data);
-                renderHistory();
-            };
-        };
-
-        window.setSpeed = (id, s) => {
-            const v = document.getElementById(id);
-            v.playbackRate = s;
-            v.play(); // 재생 시도하여 화면 깨움
-        };
+        function toggleHistory() {
+            const sec = document.getElementById('historySection');
+            if(sec.style.display === "block") sec.style.display = "none";
+            else { sec.style.display = "block"; renderHistory(); }
+        }
     </script>
 </body>
 </html>
