@@ -2,69 +2,77 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>집중 기록 카메라 - 비공개 모드</title>
+    <title>집중 기록 카메라 - 자동 저장 모드</title>
     <style>
-        body { font-family: 'Pretendard', sans-serif; display: flex; flex-direction: column; align-items: center; background: #fafafa; color: #333; }
-        #container { position: relative; width: 90%; max-width: 500px; margin-top: 20px; }
-        video { width: 100%; border-radius: 20px; background: #000; transform: scaleX(-1); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        /* 타이머는 이제 화면에서 보이지 않게 처리 (필요시 검사기로만 확인 가능) */
+        body { font-family: 'Pretendard', -apple-system, sans-serif; display: flex; flex-direction: column; align-items: center; background: #f8f9fa; color: #212529; padding: 20px; }
+        #container { position: relative; width: 100%; max-width: 500px; margin-top: 20px; }
+        video { width: 100%; border-radius: 24px; background: #000; transform: scaleX(-1); box-shadow: 0 12px 40px rgba(0,0,0,0.15); }
         #timer { display: none; } 
         
-        .status-dot { position: absolute; top: 20px; right: 20px; width: 12px; height: 12px; background: red; border-radius: 50%; display: none; animation: blink 1s infinite; }
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        .status-dot { position: absolute; top: 20px; right: 20px; width: 14px; height: 14px; background: #ff3b30; border-radius: 50%; display: none; animation: blink 1s infinite; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
 
-        .controls { margin-top: 25px; display: flex; align-items: center; gap: 15px; }
-        button { padding: 12px 24px; border-radius: 12px; border: none; cursor: pointer; font-weight: 600; transition: 0.3s; }
-        #startBtn { background: #007AFF; color: white; }
-        #startBtn:disabled { background: #ccc; }
+        .controls { margin: 30px 0; display: flex; align-items: center; gap: 12px; background: white; padding: 15px 25px; border-radius: 50px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        input[type="number"] { width: 45px; border: none; font-size: 1.1rem; font-weight: bold; text-align: center; border-bottom: 2px solid #007AFF; outline: none; }
         
-        /* 평가 섹션 스타일 */
-        .evaluation-area, .playback-area { 
-            margin-top: 30px; display: none; width: 90%; max-width: 500px; 
-            padding: 20px; background: white; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            text-align: center;
+        button { padding: 12px 24px; border-radius: 12px; border: none; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+        #startBtn { background: #007AFF; color: white; font-size: 1rem; }
+        #startBtn:active { transform: scale(0.95); }
+        
+        /* 알림/평가/재생 영역 */
+        .card { 
+            margin-top: 20px; display: none; width: 100%; max-width: 500px; 
+            padding: 25px; background: white; border-radius: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            text-align: center; box-sizing: border-box;
         }
-        .eval-buttons { display: flex; justify-content: center; gap: 10px; margin-top: 15px; }
-        .eval-btn { background: #f0f0f0; border: 1px solid #ddd; padding: 10px 20px; }
-        .eval-btn:hover { background: #e0e0e0; }
-        .selected-eval { background: #007AFF !important; color: white; border-color: #007AFF; }
+        .eval-buttons { display: flex; justify-content: center; gap: 12px; margin: 20px 0; }
+        .eval-btn { background: #f1f3f5; border: none; padding: 12px 20px; border-radius: 12px; flex: 1; }
+        .selected-eval { background: #007AFF !important; color: white; }
+
+        .info-label { font-size: 0.85rem; color: #6c757d; margin-bottom: 5px; display: block; }
+        .start-time-badge { background: #e9ecef; padding: 4px 12px; border-radius: 20px; font-weight: bold; font-size: 0.9rem; }
     </style>
 </head>
 <body>
 
-    <h2>🎯 집중 기록 모드</h2>
-    <p style="color: #666; font-size: 0.9rem;">녹화 중에는 타이머가 표시되지 않습니다.</p>
+    <h2 style="margin-bottom: 5px;">🎯 집중 기록 모드</h2>
+    <p style="color: #adb5bd; margin-top: 0;">설정된 시간이 되면 자동으로 녹화가 저장됩니다.</p>
     
     <div id="container">
-        <div class="status-dot" id="statusDot"></div> <video id="preview" autoplay muted playsinline></video>
-        <div id="timer">0</div>
+        <div class="status-dot" id="statusDot"></div>
+        <video id="preview" autoplay muted playsinline></video>
     </div>
 
-    <div class="controls">
-        <input type="number" id="minutes" value="1" min="1" style="width: 50px; padding: 8px; border-radius: 8px; border: 1px solid #ddd;"> 분 집중하기
-        <button id="startBtn">집중 시작</button>
+    <div class="controls" id="inputControl">
+        <input type="number" id="minutes" value="1" min="1"> 분 집중
+        <button id="startBtn">녹화 시작</button>
     </div>
 
-    <div class="evaluation-area" id="evaluationArea">
-        <h3>오늘의 집중도는 어땠나요?</h3>
+    <div class="card" id="evaluationArea">
+        <h3 style="margin-top: 0;">방금 집중도는 어땠나요?</h3>
         <div class="eval-buttons">
             <button class="eval-btn" onclick="selectEval(this, '상')">🔥 상</button>
             <button class="eval-btn" onclick="selectEval(this, '중')">👍 중</button>
             <button class="eval-btn" onclick="selectEval(this, '하')">☁️ 하</button>
         </div>
-        <button id="saveEvalBtn" style="margin-top: 20px; width: 100%; background: #333; color: white;" onclick="showPlayback()">평가 완료</button>
+        <button id="saveEvalBtn" style="width: 100%; background: #212529; color: white;" onclick="showPlayback()">평가 완료</button>
     </div>
 
-    <div class="playback-area" id="playbackArea">
-        <h3>✅ 기록 확인 (<span id="userRating"></span>)</h3>
-        <video id="recording" controls style="transform: none;"></video>
-        <div style="margin-top:15px;">
-            재생 속도: 
+    <div class="card" id="playbackArea">
+        <span class="info-label">녹화 정보</span>
+        <div style="margin-bottom: 15px;">
+            시작 시간: <span id="startTimeDisplay" class="start-time-badge">-</span>
+            | 내 평가: <span id="userRating" style="font-weight: bold; color: #007AFF;">-</span>
+        </div>
+        <video id="recording" controls style="transform: none; border-radius: 12px;"></video>
+        <div style="margin-top:20px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+            <span>재생 속도:</span>
             <button class="eval-btn" onclick="setSpeed(1)">1x</button>
             <button class="eval-btn" onclick="setSpeed(2)">2x</button>
             <button class="eval-btn" onclick="setSpeed(4)">4x</button>
         </div>
-        <p style="margin-top: 20px;"><a id="downloadLink" style="color: #007AFF; text-decoration: none; font-weight: bold;">📥 영상 소장하기</a></p>
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+        <a id="downloadLink" style="color: #007AFF; text-decoration: none; font-weight: bold; font-size: 0.9rem;">📥 기기에 영구 저장하기</a>
     </div>
 
     <script>
@@ -73,6 +81,7 @@
         let timerInterval;
         let timeLeft;
         let selectedRating = "";
+        let recordingStartTime = "";
 
         const preview = document.getElementById('preview');
         const recording = document.getElementById('recording');
@@ -80,21 +89,19 @@
         const evaluationArea = document.getElementById('evaluationArea');
         const playbackArea = document.getElementById('playbackArea');
         const statusDot = document.getElementById('statusDot');
+        const startTimeDisplay = document.getElementById('startTimeDisplay');
 
-        // 알람음 생성 함수 (짧은 비프음)
         function playAlarm() {
             const context = new (window.AudioContext || window.webkitAudioContext)();
             const oscillator = context.createOscillator();
             const gain = context.createGain();
             oscillator.connect(gain);
             gain.connect(context.destination);
-            oscillator.type = 'sine';
-            oscillator.frequency.setValueAtTime(440, context.currentTime); // A4 음계
+            oscillator.frequency.setValueAtTime(523.25, context.currentTime); // C5 음
             gain.gain.setValueAtTime(0, context.currentTime);
-            gain.gain.linearRampToValueAtTime(1, context.currentTime + 0.01);
+            gain.gain.linearRampToValueAtTime(0.5, context.currentTime + 0.05);
             oscillator.start();
-            gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.5);
-            oscillator.stop(context.currentTime + 0.5);
+            oscillator.stop(context.currentTime + 0.3);
         }
 
         async function initCamera() {
@@ -102,12 +109,16 @@
                 const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
                 preview.srcObject = stream;
                 return stream;
-            } catch (err) { alert("카메라 권한이 필요합니다."); }
+            } catch (err) { alert("카메라 권한을 허용해주세요."); }
         }
 
         startBtn.onclick = async () => {
             const stream = await initCamera();
             if (!stream) return;
+
+            // 시작 시간 기록 (시:분:초)
+            const now = new Date();
+            recordingStartTime = now.toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
             recordedChunks = [];
             timeLeft = document.getElementById('minutes').value * 60;
@@ -116,14 +127,16 @@
             mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
             
             mediaRecorder.onstop = () => {
+                // 즉시 확인 가능하도록 Blob URL 생성 (기기 메모리에 임시 저장됨)
                 const blob = new Blob(recordedChunks, { type: 'video/webm' });
-                recording.src = URL.createObjectURL(blob);
-                document.getElementById('downloadLink').href = recording.src;
-                document.getElementById('downloadLink').download = `focus_${new Date().getTime()}.webm`;
+                const videoUrl = URL.createObjectURL(blob);
                 
-                // 녹화 종료 후 평가 창 띄우기
+                recording.src = videoUrl;
+                document.getElementById('downloadLink').href = videoUrl;
+                document.getElementById('downloadLink').download = `focus_${recordingStartTime}.webm`;
+                
                 evaluationArea.style.display = 'block';
-                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                document.getElementById('inputControl').style.display = 'none';
             };
 
             mediaRecorder.start();
@@ -132,35 +145,28 @@
 
             timerInterval = setInterval(() => {
                 timeLeft--;
-                if (timeLeft <= 0) {
-                    stopRecording();
-                }
+                if (timeLeft <= 0) stopRecording();
             }, 1000);
         };
 
         function stopRecording() {
             clearInterval(timerInterval);
-            playAlarm(); // 알람 울리기
+            playAlarm();
             mediaRecorder.stop();
             preview.srcObject.getTracks().forEach(track => track.stop());
             statusDot.style.display = 'none';
-            startBtn.disabled = false;
         }
 
-        // 집중도 선택 함수
         function selectEval(btn, rating) {
             document.querySelectorAll('.eval-btn').forEach(b => b.classList.remove('selected-eval'));
             btn.classList.add('selected-eval');
             selectedRating = rating;
         }
 
-        // 평가 완료 후 재생 영역 표시
         function showPlayback() {
-            if (!selectedRating) {
-                alert("집중도를 선택해주세요!");
-                return;
-            }
-            document.getElementById('userRating').innerText = "내 점수: " + selectedRating;
+            if (!selectedRating) { alert("집중도를 선택해주세요!"); return; }
+            document.getElementById('userRating').innerText = selectedRating;
+            startTimeDisplay.innerText = recordingStartTime;
             evaluationArea.style.display = 'none';
             playbackArea.style.display = 'block';
         }
