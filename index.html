@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>온라인 수학 마스터</title>
-    <!-- Firebase SDK 로드 -->
+    <!-- Firebase SDK (가장 안정적인 호환성 모드) -->
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <style>
@@ -12,70 +12,62 @@
         body { font-family: -apple-system, sans-serif; background: var(--ios-gray); margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
         .container { width: 100%; max-width: 850px; background: white; border-radius: 24px; padding: 20px; box-sizing: border-box; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 20px; }
         
-        /* 버튼 스타일 */
         .btn { padding: 15px 25px; border-radius: 14px; border: none; font-weight: bold; cursor: pointer; color: white; font-size: 1rem; transition: 0.2s; }
         .btn:active { opacity: 0.7; transform: scale(0.98); }
         .btn-student { background: var(--ios-blue); width: 100%; }
         .btn-teacher { background: #5856d6; width: 100%; }
         
-        /* 탭 메뉴 */
         .tab-menu { display: flex; gap: 10px; margin-bottom: 20px; }
         .tab { flex: 1; padding: 15px; text-align: center; background: #e5e5ea; border-radius: 12px; cursor: pointer; font-weight: bold; }
         .tab.active { background: var(--ios-blue); color: white; }
 
-        /* 문제 레이아웃 */
         .quiz-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; }
-        .problem-card { background: #fff; border: 1px solid #ddd; border-radius: 18px; padding: 12px; position: relative; height: 260px; display: flex; flex-direction: column; box-sizing: border-box; }
+        .problem-card { background: #fff; border: 1px solid #ddd; border-radius: 18px; padding: 12px; position: relative; height: 280px; display: flex; flex-direction: column; box-sizing: border-box; }
         .problem-text { font-size: 2.2rem; font-weight: bold; text-align: right; border-bottom: 3px solid #333; width: 110px; margin-left: auto; margin-bottom: 5px; line-height: 1.1; }
         .canvas-wrapper { flex: 1; background: #fdfdfd; border-radius: 12px; border: 1px solid #efeff4; position: relative; overflow: hidden; }
         canvas { width: 100%; height: 100%; touch-action: none; }
 
-        /* 채점 표시 */
-        .mark-overlay { position: absolute; top: 10px; left: 15px; font-size: 4.5rem; font-weight: bold; pointer-events: none; z-index: 10; font-family: sans-serif; }
+        .mark-overlay { position: absolute; top: 10px; left: 15px; font-size: 4.5rem; font-weight: bold; pointer-events: none; z-index: 10; }
         .mark-o { color: rgba(52, 199, 89, 0.7); }
         .mark-x { color: rgba(255, 59, 48, 0.7); }
 
         .hidden { display: none !important; }
         #timerDisplay { font-size: 1.5rem; font-weight: bold; color: var(--ios-red); }
-        select { -webkit-appearance: none; background: white; border: 1px solid #ddd; }
+        input, select { -webkit-appearance: none; width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #ddd; font-size: 1rem; margin-bottom: 10px; box-sizing: border-box; }
     </style>
 </head>
 <body>
 
+<!-- 초기 관문 -->
 <div id="loginGate" class="container">
     <h1 style="text-align:center; margin-bottom:30px;">🏫 온라인 연산 교실</h1>
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
-        <button class="btn btn-student" style="height:150px;" onclick="initStudent()">학생용<br>(공부 시작)</button>
-        <button class="btn btn-teacher" style="height:150px;" onclick="showView('teacherLogin')">교사용<br>(채점 하기)</button>
+        <button class="btn btn-student" style="height:150px;" onclick="initStudent()">학생용<br>(학습 시작)</button>
+        <button class="btn btn-teacher" style="height:150px;" onclick="showView('teacherLogin')">교사용<br>(제출 확인)</button>
     </div>
 </div>
 
-<!-- 학생 메인 화면 -->
+<!-- 학생 화면 -->
 <div id="studentMain" class="container hidden">
     <div class="tab-menu">
-        <div id="tabNew" class="tab active" onclick="switchStudentTab('new')">🆕 오늘의 문제</div>
+        <div id="tabNew" class="tab active" onclick="switchStudentTab('new')">🆕 문제 풀기</div>
         <div id="tabWrong" class="tab" onclick="switchStudentTab('wrong')">🖍 오답 노트 (<span id="wrongCount">0</span>)</div>
     </div>
-
     <div id="newSetup">
-        <div style="margin-bottom:15px;">
-            <label style="font-weight:bold;">연산 선택</label>
-            <select id="opMain" onchange="updateSubOptions()" style="width:100%; padding:15px; border-radius:10px; font-size:1rem; margin-top:5px;"></select>
-        </div>
-        <div style="margin-bottom:25px;">
-            <label style="font-weight:bold;">단계 선택</label>
-            <select id="opSub" style="width:100%; padding:15px; border-radius:10px; font-size:1rem; margin-top:5px;"></select>
-        </div>
-        <button class="btn btn-student" onclick="startQuiz()">문제 생성하기</button>
+        <label>연산 선택</label>
+        <select id="opMain">
+            <option value="add">덧셈 (+)</option>
+            <option value="sub">뺄셈 (-)</option>
+        </select>
+        <button class="btn btn-student" onclick="startQuiz()">문제 생성</button>
     </div>
-
     <div id="wrongNoteArea" class="hidden">
         <div id="wrongQuizGrid" class="quiz-grid"></div>
-        <button id="submitWrongBtn" class="btn" style="width:100%; margin-top:20px; background:var(--ios-orange);" onclick="submitFullQuiz(true)">오답 노트 제출</button>
+        <button class="btn" style="width:100%; margin-top:20px; background:var(--ios-orange);" onclick="submitFullQuiz(true)">오답 노트 제출</button>
     </div>
 </div>
 
-<!-- 문제 풀이 섹션 -->
+<!-- 문제 풀이 화면 -->
 <div id="quizSection" class="container hidden">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
         <div id="timerDisplay">00:00</div>
@@ -84,23 +76,25 @@
     <div id="quizArea" class="quiz-grid"></div>
 </div>
 
-<!-- 교사용 섹션 -->
+<!-- 교사용 대시보드 -->
 <div id="teacherLogin" class="container hidden">
     <h2 style="text-align:center;">교사용 로그인</h2>
-    <input type="password" id="tPass" placeholder="비밀번호 1234" style="width:100%; padding:15px; border-radius:10px; border:1px solid #ddd; margin-bottom:15px; box-sizing:border-box;">
+    <input type="password" id="tPass" placeholder="비밀번호 1234">
     <button class="btn btn-teacher" onclick="checkTeacher()">로그인</button>
 </div>
 
 <div id="teacherDashboard" class="container hidden">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
         <h2>📝 제출 현황</h2>
-        <button class="btn" style="background:#8e8e93; padding:8px 15px;" onclick="location.reload()">로그아웃</button>
+        <button class="btn" style="background:#8e8e93; padding:8px 15px;" onclick="location.reload()">나가기</button>
     </div>
-    <div id="logList"></div>
+    <div id="logList">
+        <p style="text-align:center; padding:20px;">데이터를 불러오는 중입니다...</p>
+    </div>
 </div>
 
 <script>
-    // Firebase 설정
+    // 1. Firebase 초기 설정
     const firebaseConfig = {
         apiKey: "AIzaSyByzHhGCTA2yE89tYCeOkhJQ1PiyPJ9Csk",
         authDomain: "math-98dc8.firebaseapp.com",
@@ -111,31 +105,21 @@
         appId: "1:998893080786:web:fc2ce7af37e3bd0cd85d0b",
         measurementId: "G-TC28EDFTWR"
     };
+
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
     let timer, seconds = 0, currentProblems = [], canvases = [];
 
-    const optMap = {
-        add: [{v: "1", t: "1. 덧셈 (기본)"}, {v: "2", t: "2. 덧셈 (심화)"}],
-        sub: [{v: "1", t: "1. 뺄셈 (기본)"}, {v: "2", t: "2. 뺄셈 (심화)"}]
-    };
-
+    // 공통 함수: 화면 전환
     function showView(id) {
         document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
         document.getElementById(id).classList.remove('hidden');
     }
 
-    function updateSubOptions() {
-        const main = document.getElementById('opMain');
-        if(!main.innerHTML) main.innerHTML = '<option value="add">덧셈 (+)</option><option value="sub">뺄셈 (-)</option>';
-        const sub = document.getElementById('opSub');
-        sub.innerHTML = optMap[main.value].map(o => `<option value="${o.v}">${o.t}</option>`).join('');
-    }
-
+    // --- 학생용 로직 ---
     function initStudent() {
         showView('studentMain');
-        updateSubOptions();
         listenToWrongNotes();
     }
 
@@ -158,8 +142,10 @@
         showView('quizSection');
         const area = document.getElementById('quizArea');
         area.innerHTML = ""; currentProblems = []; canvases = [];
+        const op = document.getElementById('opMain').value === 'add' ? '+' : '-';
+
         for(let i=0; i<8; i++) {
-            const p = { n1: Math.floor(Math.random()*80)+11, n2: Math.floor(Math.random()*9)+2, op: document.getElementById('opMain').value === 'add' ? '+' : '-' };
+            const p = { n1: Math.floor(Math.random()*80)+11, n2: Math.floor(Math.random()*9)+2, op: op };
             currentProblems.push(p);
             createCard(area, p, i, 'c');
         }
@@ -175,7 +161,7 @@
                 <div class="problem-text">${p.n1}<br>${p.op} ${p.n2}</div>
             </div>
             <div class="canvas-wrapper"><canvas id="${prefix}-canv-${i}"></canvas></div>
-            <button onclick="clearCnv(${i})" style="position:absolute; bottom:8px; left:8px; border:none; background:#eee; border-radius:5px; font-size:11px; padding:4px 8px;">지우기</button>
+            <button onclick="clearCnv(${i})" style="position:absolute; bottom:8px; left:8px; border:none; background:#eee; border-radius:5px; font-size:11px; padding:4px 8px;">싹 지우기</button>
         `;
         target.appendChild(card);
         setTimeout(() => setupCanvas(`${prefix}-canv-${i}`, i), 100);
@@ -209,7 +195,7 @@
         }, 1000);
     }
 
-    function submitFullQuiz(isWrong) {
+    function submitFullQuiz(isWrongNote) {
         const data = {
             date: new Date().toLocaleString(),
             time: document.getElementById('timerDisplay').innerText,
@@ -217,64 +203,92 @@
             problems: currentProblems,
             grades: new Array(currentProblems.length).fill(null)
         };
-        database.ref(isWrong ? 'wrongSubmissions' : 'records').push(data).then(() => {
-            if(isWrong) database.ref('wrongNotes').remove();
-            alert("제출 완료!"); location.reload();
-        });
+        
+        database.ref('records').push(data).then(() => {
+            if(isWrongNote) database.ref('wrongNotes').remove();
+            alert("선생님께 온라인으로 제출되었습니다!");
+            location.reload();
+        }).catch(e => alert("제출 실패: " + e.message));
     }
 
-    // 교사 로직
+    // --- 교사용 로직 (보강됨) ---
     function checkTeacher() {
         if(document.getElementById('tPass').value === "1234") {
             showView('teacherDashboard');
             loadTeacherLogs();
-        } else alert("비밀번호 틀림");
+        } else alert("비밀번호가 틀렸습니다.");
     }
 
     function loadTeacherLogs() {
         const list = document.getElementById('logList');
-        database.ref('records').on('value', (snap) => {
-            const logs = snap.val();
+        // 'records' 경로를 실시간 모니터링
+        database.ref('records').on('value', (snapshot) => {
+            const logs = snapshot.val();
             list.innerHTML = "";
-            if(!logs) { list.innerHTML = "<p>기록 없음</p>"; return; }
-            Object.keys(logs).reverse().forEach(id => {
-                const l = logs[id];
+            
+            if(!logs) {
+                list.innerHTML = "<p style='text-align:center; padding:50px;'>아직 제출된 기록이 없습니다.</p>";
+                return;
+            }
+
+            // 최신순으로 정렬하여 렌더링
+            Object.keys(logs).reverse().forEach(recordId => {
+                const record = logs[recordId];
                 const item = document.createElement('div');
-                item.style.marginBottom = "40px";
+                item.className = 'container';
+                item.style.border = "1px solid #eee";
+                item.style.marginBottom = "30px";
+                item.style.padding = "15px";
+
                 item.innerHTML = `
-                    <h3 style="background:var(--ios-gray); padding:10px; border-radius:10px;">🕒 ${l.date} (${l.time})</h3>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:2px solid var(--ios-gray); padding-bottom:10px;">
+                        <span style="font-weight:bold; color:#555;">🕒 ${record.date}</span>
+                        <span style="background:var(--ios-blue); color:white; padding:4px 10px; border-radius:20px; font-size:12px;">풀이시간: ${record.time}</span>
+                    </div>
                     <div class="quiz-grid">
-                        ${l.problems.map((p, i) => `
+                        ${record.problems.map((p, i) => `
                             <div class="problem-card">
-                                <div class="problem-text" style="font-size:1.8rem;">${p.n1}<br>${p.op} ${p.n2}</div>
-                                <img src="${l.imgs[i]}" style="width:100%; height:130px; object-fit:contain; background:#f9f9f9; border-radius:10px;">
-                                <div style="display:flex; gap:5px; margin-top:8px;">
-                                    <button class="btn" style="background:var(--ios-green); flex:1; padding:8px;" onclick="gradeOnline('${id}', ${i}, 'O')">O</button>
-                                    <button class="btn" style="background:var(--ios-red); flex:1; padding:8px;" onclick="gradeOnline('${id}', ${i}, 'X')">X</button>
+                                <div class="problem-text">${p.n1}<br>${p.op} ${p.n2}</div>
+                                <img src="${record.imgs[i]}" style="width:100%; height:130px; object-fit:contain; background:#f9f9f9; border-radius:10px;">
+                                <div style="display:flex; gap:10px; margin-top:10px;">
+                                    <button class="btn" style="background:var(--ios-green); flex:1; padding:8px;" onclick="gradeOnline('${recordId}', ${i}, 'O')">O</button>
+                                    <button class="btn" style="background:var(--ios-red); flex:1; padding:8px;" onclick="gradeOnline('${recordId}', ${i}, 'X')">X</button>
                                 </div>
-                                <div class="mark-overlay ${l.grades[i]==='O'?'mark-o':'mark-x'}">${l.grades[i]||''}</div>
+                                <div class="mark-overlay ${record.grades && record.grades[i]==='O'?'mark-o':'mark-x'}">${(record.grades && record.grades[i]) || ''}</div>
                             </div>
                         `).join('')}
                     </div>
-                    <button class="btn" style="background:var(--ios-red); width:100%; margin-top:10px;" onclick="if(confirm('삭제?')) database.ref('records/${id}').remove()">기록 삭제</button>
+                    <button class="btn" style="background:var(--ios-red); width:100%; margin-top:15px; padding:10px;" onclick="if(confirm('기록을 삭제할까요?')) database.ref('records/${recordId}').remove()">이 기록 삭제</button>
                 `;
                 list.appendChild(item);
             });
+        }, (error) => {
+            list.innerHTML = `<p style="color:red; text-align:center;">에러 발생: ${error.message}<br>Firebase 규칙을 확인해주세요.</p>`;
         });
     }
 
-    function gradeOnline(rid, idx, status) {
-        database.ref(`records/${rid}/grades/${idx}`).set(status);
+    function gradeOnline(recordId, index, status) {
+        // 특정 문제의 등급 업데이트
+        database.ref(`records/${recordId}/grades/${index}`).set(status);
+        
+        // 오답(X)일 경우 오답노트에 추가
         if(status === 'X') {
-            database.ref(`records/${rid}/problems/${idx}`).once('value', (s) => {
-                database.ref('wrongNotes').push({ problem: s.val() });
+            database.ref(`records/${recordId}/problems/${index}`).once('value', (snap) => {
+                database.ref('wrongNotes').push({
+                    problem: snap.val(),
+                    fromRecord: recordId
+                });
             });
         }
     }
 
     function renderWrongNoteArea(data) {
         const area = document.getElementById('wrongQuizGrid');
-        area.innerHTML = ""; if(!data) return;
+        area.innerHTML = "";
+        if(!data) {
+            area.innerHTML = "<p style='grid-column:span 2; text-align:center; padding:50px;'>오답이 없습니다! 아주 훌륭해요! 👍</p>";
+            return;
+        }
         currentProblems = []; canvases = [];
         Object.keys(data).forEach((id, i) => {
             currentProblems.push(data[id].problem);
