@@ -3,96 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>온라인 수학 마스터</title>
+    <title>온라인 수학 마스터 Pro</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <style>
-        :root { --ios-blue: #007AFF; --ios-gray: #f2f2f7; --ios-green: #34c759; --ios-red: #ff3b30; --ios-orange: #ff9500; }
+        :root { --ios-blue: #007AFF; --ios-gray: #f2f2f7; --ios-green: #34c759; --ios-red: #ff3b30; }
         body { font-family: -apple-system, sans-serif; background: var(--ios-gray); margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
-        .container { width: 100%; max-width: 850px; background: white; border-radius: 20px; padding: 15px; box-sizing: border-box; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 15px; }
-        
-        /* 버튼 및 입력창 */
-        .btn { padding: 12px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; color: white; font-size: 0.95rem; }
+        .container { width: 100%; max-width: 900px; background: white; border-radius: 20px; padding: 20px; box-sizing: border-box; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 15px; }
+        .btn { padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; color: white; font-size: 1.1rem; }
         .btn-student { background: var(--ios-blue); width: 100%; }
-        .btn-teacher { background: #5856d6; width: 100%; }
-        select { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; font-size: 1rem; margin-bottom: 10px; background: white; }
-
-        /* 문제 그리드 조정 (잘림 방지) */
-        .quiz-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
-        .problem-card { 
-            background: #fff; border: 1px solid #eee; border-radius: 15px; padding: 10px; 
-            position: relative; height: 200px; /* 높이 축소하여 8문제 한 화면 표시 */
-            display: flex; flex-direction: column; box-sizing: border-box; 
-        }
-        .problem-info { display: flex; justify-content: space-between; align-items: flex-start; height: 60px; }
-        .q-label { color: #8e8e93; font-size: 0.8rem; font-weight: bold; }
-        .problem-text { font-size: 1.8rem; font-weight: bold; text-align: right; border-bottom: 2.5px solid #333; min-width: 80px; line-height: 1; }
+        select { width: 100%; padding: 15px; border-radius: 10px; border: 1px solid #ddd; font-size: 1.1rem; margin-bottom: 15px; background: white; }
         
-        .canvas-wrapper { flex: 1; background: #fafafa; border-radius: 10px; position: relative; margin-top: 5px; border: 1px solid #f0f0f0; }
-        canvas { width: 100%; height: 100%; touch-action: none; }
-
-        .mark-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 5rem; font-weight: bold; pointer-events: none; z-index: 10; opacity: 0.7; }
+        /* 문제 그리드 */
+        .quiz-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; }
+        .problem-card { background: #fff; border: 1px solid #eee; border-radius: 18px; padding: 15px; position: relative; height: 260px; display: flex; flex-direction: column; box-sizing: border-box; }
+        .problem-text { font-size: 2.2rem; font-weight: bold; text-align: right; border-bottom: 3px solid #333; min-width: 100px; line-height: 1.1; margin-bottom: 10px; }
+        .canvas-wrapper { flex: 1; background: #fafafa; border-radius: 12px; border: 1px solid #f0f0f0; }
+        canvas { width: 100%; height: 100%; touch-action: none; display: block; }
+        
+        /* 교사 리스트 스타일 */
+        .log-item { border: 1px solid #ddd; border-radius: 12px; margin-bottom: 10px; overflow: hidden; background: white; }
+        .log-header { padding: 15px; background: #fff; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
+        .log-header:hover { background: #f9f9f9; }
+        .log-content { padding: 15px; background: #fdfdfd; border-top: 1px solid #eee; display: none; }
+        
+        .mark-overlay { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); font-size: 6rem; font-weight: bold; pointer-events: none; z-index: 10; opacity: 0.6; }
         .mark-o { color: var(--ios-green); }
         .mark-x { color: var(--ios-red); }
-
         .hidden { display: none !important; }
-        #timerDisplay { font-size: 1.2rem; font-weight: bold; color: var(--ios-red); }
+        #timerDisplay { font-size: 1.5rem; font-weight: bold; color: var(--ios-red); }
+        .set-info { background: #333; color: white; padding: 5px 15px; border-radius: 20px; font-size: 0.9rem; }
     </style>
 </head>
 <body>
 
-<!-- 초기 관문 -->
 <div id="loginGate" class="container">
-    <h2 style="text-align:center; margin-bottom:20px;">🏫 온라인 연산 교실</h2>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
-        <button class="btn btn-student" style="height:120px;" onclick="initStudent()">학생용</button>
-        <button class="btn btn-teacher" style="height:120px;" onclick="showView('teacherLogin')">교사용</button>
+    <h2 style="text-align:center;">🏫 온라인 연산 교실</h2>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+        <button class="btn btn-student" style="height:150px;" onclick="initStudent()">학생용</button>
+        <button class="btn" style="height:150px; background:#5856d6;" onclick="showView('teacherLogin')">교사용</button>
     </div>
 </div>
 
-<!-- 학생 화면 -->
+<!-- 학생 메인 화면 -->
 <div id="studentMain" class="container hidden">
-    <div style="display:flex; gap:10px; margin-bottom:15px;">
-        <div id="tabNew" style="flex:1; padding:10px; text-align:center; background:var(--ios-blue); color:white; border-radius:10px; font-weight:bold; cursor:pointer;" onclick="switchStudentTab('new')">문제 풀기</div>
-        <div id="tabWrong" style="flex:1; padding:10px; text-align:center; background:#e5e5ea; border-radius:10px; font-weight:bold; cursor:pointer;" onclick="switchStudentTab('wrong')">오답 (<span id="wrongCount">0</span>)</div>
+    <div style="display:flex; gap:10px; margin-bottom:20px;">
+        <div id="tabNew" style="flex:1; padding:15px; text-align:center; background:var(--ios-blue); color:white; border-radius:12px; font-weight:bold; cursor:pointer;" onclick="switchStudentTab('new')">문제 풀기</div>
+        <div id="tabWrong" style="flex:1; padding:15px; text-align:center; background:#e5e5ea; border-radius:12px; font-weight:bold; cursor:pointer;" onclick="switchStudentTab('wrong')">오답 노트 (<span id="wrongCount">0</span>)</div>
     </div>
     <div id="newSetup">
-        <label style="font-size:0.9rem; font-weight:bold;">1. 연산 선택</label>
+        <label>연산 선택</label>
         <select id="opMain" onchange="updateSubOptions()">
             <option value="add">덧셈 (+)</option>
             <option value="sub">뺄셈 (-)</option>
         </select>
-        <label style="font-size:0.9rem; font-weight:bold;">2. 단계 선택</label>
+        <label>단계 선택</label>
         <select id="opSub"></select>
-        <button class="btn btn-student" onclick="startQuiz()">학습 시작하기</button>
+        <button class="btn btn-student" onclick="startContinuousQuiz()">5장 연속 학습 시작</button>
     </div>
     <div id="wrongNoteArea" class="hidden">
         <div id="wrongQuizGrid" class="quiz-grid"></div>
-        <button class="btn" style="width:100%; margin-top:15px; background:var(--ios-orange);" onclick="submitFullQuiz(true)">오답 노트 제출</button>
+        <button class="btn" style="width:100%; margin-top:20px; background:var(--ios-orange);" onclick="submitFullQuiz(true)">오답 노트 제출</button>
     </div>
 </div>
 
 <!-- 문제 풀이 화면 -->
 <div id="quizSection" class="container hidden">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
         <div id="timerDisplay">00:00</div>
-        <button class="btn" style="background:var(--ios-green); padding:8px 20px;" onclick="submitFullQuiz(false)">제출하기</button>
+        <div id="setIndicator" class="set-info">1 / 5 장</div>
+        <button class="btn" style="background:var(--ios-green); padding:10px 30px;" onclick="handleSetSubmit()">제출 / 다음</button>
     </div>
     <div id="quizArea" class="quiz-grid"></div>
 </div>
 
-<!-- 교사용 -->
+<!-- 교사용 화면 -->
 <div id="teacherLogin" class="container hidden">
-    <input type="password" id="tPass" placeholder="비밀번호 1234">
-    <button class="btn btn-teacher" onclick="checkTeacher()">로그인</button>
+    <input type="password" id="tPass" placeholder="비밀번호 1234" style="width:100%; padding:15px; border-radius:10px; border:1px solid #ddd; margin-bottom:10px;">
+    <button class="btn" style="background:#5856d6; width:100%;" onclick="checkTeacher()">로그인</button>
 </div>
 
 <div id="teacherDashboard" class="container hidden">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-        <h3 style="margin:0;">📝 제출 현황</h3>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <h3>📋 제출 목록 (날짜별)</h3>
         <button onclick="location.reload()">로그아웃</button>
     </div>
-    <div id="logList">데이터 로딩 중...</div>
+    <div id="logList">목록을 불러오는 중...</div>
 </div>
 
 <script>
@@ -109,18 +105,11 @@
 
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
-    let timer, seconds = 0, currentProblems = [], canvases = [];
+    let timer, seconds = 0, currentProblems = [], canvases = [], currentSet = 1;
 
     const subSteps = {
-        add: [
-            {v: "1", t: "1. 받아올림 몇+몇"}, {v: "2", t: "2. 받아올림 몇십몇+몇"},
-            {v: "3", t: "3. 받아올림 몇십몇+몇십몇"}, {v: "4", t: "4. 받아올림 몇백+몇십몇"},
-            {v: "5", t: "5. 받아올림 몇백몇십+몇백몇십"}
-        ],
-        sub: [
-            {v: "1", t: "1. 받아내림 몇십-몇"}, {v: "2", t: "2. 받아내림 몇십몇-몇십몇"},
-            {v: "3", t: "3. 받아내림 몇백-몇"}, {v: "4", t: "4. 받아내림 몇백몇십-몇십몇"}
-        ]
+        add: [{v: "1", t: "받아올림 몇+몇"}, {v: "2", t: "받아올림 몇십몇+몇"}, {v: "3", t: "받아올림 몇십몇+몇십몇"}, {v: "4", t: "받아올림 몇백+몇십몇"}, {v: "5", t: "받아올림 몇백몇십+몇백몇십"}],
+        sub: [{v: "1", t: "받아내림 몇십-몇"}, {v: "2", t: "받아내림 몇십몇-몇십몇"}, {v: "3", t: "받아내림 몇백-몇"}, {v: "4", t: "받아내림 몇백몇십-몇십몇"}]
     };
 
     function showView(id) {
@@ -143,13 +132,56 @@
         document.getElementById('tabWrong').style.color = tab==='wrong' ? 'white' : 'black';
         document.getElementById('newSetup').classList.toggle('hidden', tab !== 'new');
         document.getElementById('wrongNoteArea').classList.toggle('hidden', tab !== 'wrong');
+        if(tab === 'wrong') setTimeout(initWrongCanvases, 300);
+    }
+
+    function startContinuousQuiz() { currentSet = 1; startQuiz(); }
+
+    function startQuiz() {
+        showView('quizSection');
+        seconds = 0; // 각 장마다 타이머 리셋
+        document.getElementById('setIndicator').innerText = `${currentSet} / 5 장`;
+        const area = document.getElementById('quizArea');
+        area.innerHTML = ""; currentProblems = []; canvases = [];
+        for(let i=0; i<8; i++) {
+            const p = generateProblem();
+            currentProblems.push(p);
+            createCard(area, p, i, 'c');
+        }
+        startTimer();
+    }
+
+    function handleSetSubmit() {
+        const mainLabel = document.getElementById('opMain').options[document.getElementById('opMain').selectedIndex].text;
+        const subLabel = document.getElementById('opSub').options[document.getElementById('opSub').selectedIndex].text;
+        
+        const data = {
+            date: new Date().toLocaleString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+            timeSpent: document.getElementById('timerDisplay').innerText,
+            title: `${mainLabel} (${subLabel})`,
+            imgs: canvases.map(c => c ? c.toDataURL() : ""),
+            problems: currentProblems,
+            grades: new Array(8).fill(null),
+            setNum: currentSet
+        };
+        
+        database.ref('records').push(data).then(() => {
+            if(currentSet < 5) {
+                currentSet++;
+                alert("제출되었습니다. 다음 장을 시작합니다!");
+                startQuiz();
+                window.scrollTo(0,0);
+            } else {
+                alert("모든 학습을 마쳤습니다! 고생했어요.");
+                location.reload();
+            }
+        });
     }
 
     function generateProblem() {
         const main = document.getElementById('opMain').value;
         const step = document.getElementById('opSub').value;
         let n1, n2;
-        
         if(main === 'add') {
             if(step === "1") { n1 = Math.floor(Math.random()*6)+4; n2 = Math.floor(Math.random()*6)+4; }
             else if(step === "2") { n1 = Math.floor(Math.random()*80)+11; n2 = Math.floor(Math.random()*9)+2; }
@@ -167,120 +199,101 @@
         }
     }
 
-    function startQuiz() {
-        showView('quizSection');
-        const area = document.getElementById('quizArea');
-        area.innerHTML = ""; currentProblems = []; canvases = [];
-        for(let i=0; i<8; i++) {
-            const p = generateProblem();
-            currentProblems.push(p);
-            createCard(area, p, i, 'c');
-        }
-        startTimer();
-    }
-
     function createCard(target, p, i, prefix) {
         const card = document.createElement('div');
         card.className = 'problem-card';
         card.innerHTML = `
-            <div class="problem-info">
-                <span class="q-label">Q${i+1}</span>
-                <div class="problem-text">${p.n1}<br>${p.op} ${p.n2}</div>
-            </div>
+            <div style="display:flex; justify-content:space-between;"><span style="color:#ccc;">Q${i+1}</span><div class="problem-text">${p.n1}<br>${p.op} ${p.n2}</div></div>
             <div class="canvas-wrapper"><canvas id="${prefix}-canv-${i}"></canvas></div>
-            <button onclick="clearCnv(${i})" style="position:absolute; bottom:5px; left:5px; font-size:10px; border:none; background:#eee; padding:2px 5px; border-radius:4px;">지우기</button>
+            <button onclick="clearCnv('${prefix}-canv-${i}')" style="position:absolute; bottom:10px; left:10px; border:none; background:#eee; padding:5px 10px; border-radius:8px; font-size:0.8rem;">지우기</button>
         `;
         target.appendChild(card);
-        setTimeout(() => setupCanvas(`${prefix}-canv-${i}`, i), 100);
+        setTimeout(() => setupCanvas(`${prefix}-canv-${i}`), 50);
     }
 
-    function setupCanvas(id, i) {
+    function setupCanvas(id) {
         const canvas = document.getElementById(id);
         if(!canvas) return;
-        canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight;
+        const rect = canvas.parentElement.getBoundingClientRect();
+        canvas.width = rect.width; canvas.height = rect.height;
         const ctx = canvas.getContext('2d');
-        canvases[i] = canvas;
         let drawing = false;
         const getPos = (e) => {
-            const rect = canvas.getBoundingClientRect();
+            const r = canvas.getBoundingClientRect();
             const cx = e.touches ? e.touches[0].clientX : e.clientX;
             const cy = e.touches ? e.touches[0].clientY : e.clientY;
-            return { x: cx - rect.left, y: cy - rect.top };
+            return { x: cx - r.left, y: cy - r.top };
         };
-        const start = (e) => { e.preventDefault(); drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); };
-        const move = (e) => { e.preventDefault(); if(!drawing) return; const p = getPos(e); ctx.lineWidth=2.5; ctx.lineCap='round'; ctx.strokeStyle='#007AFF'; ctx.lineTo(p.x, p.y); ctx.stroke(); };
-        canvas.addEventListener('touchstart', start, {passive:false});
-        canvas.addEventListener('touchmove', move, {passive:false});
+        const drawStart = (e) => { e.preventDefault(); drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); };
+        const drawMove = (e) => { e.preventDefault(); if(!drawing) return; const p = getPos(e); ctx.lineWidth=3; ctx.lineCap='round'; ctx.strokeStyle='#007AFF'; ctx.lineTo(p.x, p.y); ctx.stroke(); };
+        canvas.addEventListener('touchstart', drawStart, {passive:false});
+        canvas.addEventListener('touchmove', drawMove, {passive:false});
         canvas.addEventListener('touchend', () => drawing = false);
-        canvas.addEventListener('mousedown', start);
-        canvas.addEventListener('mousemove', move);
+        canvas.addEventListener('mousedown', drawStart);
+        canvas.addEventListener('mousemove', drawMove);
         window.addEventListener('mouseup', () => drawing = false);
+        const idx = id.split('-').pop();
+        if(id.startsWith('c-canv')) canvases[idx] = canvas;
     }
 
-    function clearCnv(i) { if(canvases[i]) canvases[i].getContext('2d').clearRect(0,0,canvases[i].width,canvases[i].height); }
+    function clearCnv(id) { const c = document.getElementById(id); if(c) c.getContext('2d').clearRect(0,0,c.width,c.height); }
 
     function startTimer() {
-        seconds = 0; if(timer) clearInterval(timer);
+        if(timer) clearInterval(timer);
         timer = setInterval(() => { seconds++; document.getElementById('timerDisplay').innerText = `${Math.floor(seconds/60).toString().padStart(2,'0')}:${(seconds%60).toString().padStart(2,'0')}`; }, 1000);
     }
 
-    function submitFullQuiz(isWrong) {
-        const data = {
-            date: new Date().toLocaleString(),
-            time: document.getElementById('timerDisplay').innerText,
-            imgs: canvases.map(c => c ? c.toDataURL() : ""),
-            problems: currentProblems,
-            grades: new Array(currentProblems.length).fill(null)
-        };
-        database.ref('records').push(data).then(() => {
-            if(isWrong) database.ref('wrongNotes').remove();
-            alert("제출 완료!"); location.reload();
-        });
-    }
-
+    // 교사용 리스트 로딩
     function checkTeacher() {
         if(document.getElementById('tPass').value === "1234") { showView('teacherDashboard'); loadTeacherLogs(); }
-        else alert("비밀번호 오류");
+        else alert("비번 오류");
     }
 
     function loadTeacherLogs() {
-        const list = document.getElementById('logList');
         database.ref('records').on('value', (snap) => {
             const logs = snap.val();
-            list.innerHTML = "";
-            if(!logs) { list.innerHTML = "제출 내역 없음"; return; }
+            const list = document.getElementById('logList');
+            list.innerHTML = ""; if(!logs) { list.innerHTML = "제출 내역 없음"; return; }
             Object.keys(logs).reverse().forEach(id => {
                 const l = logs[id];
                 const item = document.createElement('div');
-                item.style.border = "1px solid #ddd"; item.style.borderRadius = "15px"; item.style.padding = "10px"; item.style.marginBottom = "20px";
+                item.className = 'log-item';
                 item.innerHTML = `
-                    <div style="font-size:0.8rem; margin-bottom:10px;">🕒 ${l.date} (${l.time})</div>
-                    <div class="quiz-grid">
-                        ${l.problems.map((p, i) => `
-                            <div class="problem-card" style="height:180px;">
-                                <div class="problem-text" style="font-size:1.4rem;">${p.n1}<br>${p.op} ${p.n2}</div>
-                                <img src="${l.imgs[i]}" style="width:100%; height:80px; object-fit:contain; background:#f9f9f9;">
-                                <div style="display:flex; gap:5px; margin-top:5px;">
-                                    <button class="btn" style="background:var(--ios-green); flex:1; padding:5px; font-size:0.8rem;" onclick="gradeOnline('${id}', ${i}, 'O')">O</button>
-                                    <button class="btn" style="background:var(--ios-red); flex:1; padding:5px; font-size:0.8rem;" onclick="gradeOnline('${id}', ${i}, 'X')">X</button>
-                                </div>
-                                <div class="mark-overlay ${l.grades && l.grades[i]==='O'?'mark-o':'mark-x'}">${(l.grades && l.grades[i]) || ''}</div>
-                            </div>
-                        `).join('')}
+                    <div class="log-header" onclick="toggleLog('${id}')">
+                        <span>[${l.date}] ${l.title} - 제 ${l.setNum}장</span>
+                        <span style="color:var(--ios-red);">⏱ ${l.timeSpent}</span>
                     </div>
-                    <button class="btn" style="background:var(--ios-red); width:100%; margin-top:10px; font-size:0.8rem;" onclick="database.ref('records/${id}').remove()">기록 삭제</button>
+                    <div id="content-${id}" class="log-content">
+                        <div class="quiz-grid">
+                            ${l.problems.map((p, i) => `
+                                <div class="problem-card" style="height:180px;">
+                                    <div class="problem-text" style="font-size:1.4rem;">${p.n1}<br>${p.op} ${p.n2}</div>
+                                    <img src="${l.imgs[i]}" style="width:100%; height:80px; object-fit:contain; background:#f9f9f9; border-radius:8px;">
+                                    <div style="display:flex; gap:5px; margin-top:8px;">
+                                        <button class="btn" style="background:var(--ios-green); flex:1; padding:5px; font-size:0.8rem;" onclick="gradeOnline('${id}', ${i}, 'O')">O</button>
+                                        <button class="btn" style="background:var(--ios-red); flex:1; padding:5px; font-size:0.8rem;" onclick="gradeOnline('${id}', ${i}, 'X')">X</button>
+                                    </div>
+                                    <div class="mark-overlay ${l.grades && l.grades[i]==='O'?'mark-o':'mark-x'}">${(l.grades && l.grades[i]) || ''}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <button class="btn" style="background:var(--ios-red); width:100%; margin-top:15px; padding:10px; font-size:0.9rem;" onclick="database.ref('records/${id}').remove()">이 기록 삭제</button>
+                    </div>
                 `;
                 list.appendChild(item);
             });
         });
     }
 
+    function toggleLog(id) {
+        const el = document.getElementById(`content-${id}`);
+        el.style.display = (el.style.display === 'block') ? 'none' : 'block';
+    }
+
     function gradeOnline(rid, idx, status) {
         database.ref(`records/${rid}/grades/${idx}`).set(status);
         if(status === 'X') {
-            database.ref(`records/${rid}/problems/${idx}`).once('value', s => {
-                database.ref('wrongNotes').push({ problem: s.val() });
-            });
+            database.ref(`records/${rid}/problems/${idx}`).once('value', s => { database.ref('wrongNotes').push({ problem: s.val() }); });
         }
     }
 
@@ -290,12 +303,12 @@
             document.getElementById('wrongCount').innerText = data ? Object.keys(data).length : 0;
             const area = document.getElementById('wrongQuizGrid');
             area.innerHTML = ""; if(!data) return;
-            currentProblems = []; canvases = [];
-            Object.keys(data).forEach((id, i) => {
-                currentProblems.push(data[id].problem);
-                createCard(area, data[id].problem, i, 'w');
-            });
+            Object.keys(data).forEach((id, i) => { createCard(area, data[id].problem, i, 'w'); });
         });
+    }
+
+    function initWrongCanvases() {
+        document.querySelectorAll('#wrongQuizGrid canvas').forEach(c => setupCanvas(c.id));
     }
 </script>
 </body>
