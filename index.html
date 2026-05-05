@@ -8,39 +8,37 @@
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <style>
         :root { --ios-blue: #007AFF; --ios-gray: #f2f2f7; --ios-green: #34c759; --ios-red: #ff3b30; --ios-orange: #ff9500; }
-        * { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+        * { -webkit-user-select: none; user-select: none; touch-action: manipulation; }
         input, button, select { user-select: auto; -webkit-user-select: auto; }
         body { font-family: -apple-system, sans-serif; background: var(--ios-gray); margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
         .container { width: 100%; max-width: 900px; background: white; border-radius: 20px; padding: 15px; box-sizing: border-box; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 10px; }
         .btn { padding: 12px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; color: white; font-size: 1rem; }
         .btn-student { background: var(--ios-blue); width: 100%; }
-        select { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; font-size: 1rem; margin-bottom: 15px; background: white; }
-        
+        select { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; font-size: 1rem; margin-bottom: 10px; background: white; }
+        label { font-size: 0.85rem; color: #666; margin-bottom: 5px; display: block; padding-left: 5px; }
+
         .quiz-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
         .problem-card { background: #fff; border: 1px solid #eee; border-radius: 12px; padding: 10px; position: relative; height: 260px; display: flex; flex-direction: column; box-sizing: border-box; }
         
-        /* 세로셈/가로셈 공통 헤더 */
-        .problem-header { display: flex; justify-content: center; align-items: center; min-height: 80px; margin-bottom: 5px; }
-        
-        /* 가로셈 디자인 */
+        .problem-header { display: flex; justify-content: center; align-items: center; min-height: 80px; margin-bottom: 5px; pointer-events: none; }
         .text-horiz { font-size: 1.8rem; font-weight: bold; border-bottom: 2px solid #333; padding: 0 10px; }
-        
-        /* 세로셈 디자인 */
         .text-vert { font-family: 'Courier New', monospace; font-size: 1.8rem; font-weight: bold; text-align: right; line-height: 1.1; display: inline-block; }
         .vert-line { border-bottom: 3px solid #333; margin-top: 2px; width: 100%; min-width: 80px; }
         .vert-op { float: left; padding-right: 15px; }
 
-        .canvas-wrapper { flex: 1; background: #fafafa; border-radius: 8px; border: 1px solid #f0f0f0; position: relative; overflow: hidden; }
-        canvas { width: 100%; height: 100%; touch-action: none; display: block; }
-        .grade-btn-group { display: flex; gap: 5px; margin-top: 8px; height: 45px; }
-        .btn-o { background: var(--ios-green); flex: 1; }
-        .btn-x { background: var(--ios-red); flex: 1; }
+        .canvas-wrapper { flex: 1; background: #fafafa; border-radius: 8px; border: 1px solid #f0f0f0; position: relative; overflow: hidden; touch-action: none; }
+        canvas { width: 100%; height: 100%; display: block; }
+        
+        .btn-clear { position: absolute; bottom: 8px; left: 8px; border: none; background: rgba(0,0,0,0.1); padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; z-index: 20; color: #333; pointer-events: auto; }
+
         .mark-overlay { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); font-size: 5rem; font-weight: bold; pointer-events: none; z-index: 10; opacity: 0.4; }
         .mark-o { color: var(--ios-green); }
         .mark-x { color: var(--ios-red); }
         .hidden { display: none !important; }
-        .log-item { border: 1px solid #ddd; border-radius: 12px; margin-bottom: 10px; background: white; }
-        .log-header { padding: 15px; cursor: pointer; display: flex; justify-content: space-between; }
+
+        .tab-menu { display: flex; gap: 10px; margin-bottom: 15px; }
+        .tab-item { flex: 1; padding: 12px; text-align: center; border-radius: 10px; font-weight: bold; background: #e5e5ea; cursor: pointer; }
+        .tab-active { background: var(--ios-blue); color: white; }
     </style>
 </head>
 <body>
@@ -54,19 +52,33 @@
 </div>
 
 <div id="studentMain" class="container hidden">
-    <div id="newSetup">
-        <label>연산 및 문제 형태 선택</label>
-        <select id="opMain"><option value="add">덧셈 (+)</option><option value="sub">뺄셈 (-)</option></select>
+    <div class="tab-menu">
+        <div id="tabNew" class="tab-item tab-active" onclick="switchTab('new')">문제 풀기</div>
+        <div id="tabWrong" class="tab-item" onclick="switchTab('wrong')">오답 노트 (<span id="wrongCount">0</span>)</div>
+    </div>
+
+    <div id="setupArea">
+        <label>연산 종류</label>
+        <select id="opMain" onchange="updateSubOptions()"><option value="add">덧셈 (+)</option><option value="sub">뺄셈 (-)</option></select>
+        <label>세부 유형(난이도)</label>
+        <select id="opSub"></select>
+        <label>문제 형태</label>
         <select id="problemType"><option value="vert">세로셈</option><option value="horiz">가로셈</option></select>
-        <select id="setCount"><option value="1">1장</option><option value="3">3장</option><option value="5" selected>5장</option></select>
-        <button class="btn btn-student" onclick="startContinuousQuiz()">학습 시작하기</button>
+        <label>학습 분량</label>
+        <select id="setCount"><option value="1">1장</option><option value="3">3장</option><option value="5" selected>5장</option><option value="10">10장</option></select>
+        <button class="btn btn-student" style="margin-top:10px;" onclick="startContinuousQuiz()">학습 시작하기</button>
+    </div>
+
+    <div id="wrongArea" class="hidden">
+        <div id="wrongGrid" class="quiz-grid"></div>
+        <button class="btn" style="width:100%; background:var(--ios-orange); margin-top:15px;" onclick="clearWrongNotes()">오답 학습 완료</button>
     </div>
 </div>
 
 <div id="quizSection" class="container hidden">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <div id="timerDisplay" style="color:var(--ios-red); font-weight:bold;">00:00</div>
-        <div id="setIndicator" style="background:#333; color:white; padding:4px 12px; border-radius:15px; font-size:0.8rem;">1 / 1 장</div>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <div id="timerDisplay" style="color:var(--ios-red); font-weight:bold; font-size:1.2rem;">00:00</div>
+        <div id="setIndicator" style="background:#333; color:white; padding:5px 15px; border-radius:20px; font-size:0.85rem;">1 / 1 장</div>
         <button class="btn" style="background:var(--ios-green); padding:8px 20px;" onclick="handleSetSubmit()">제출 / 다음</button>
     </div>
     <div id="quizArea" class="quiz-grid"></div>
@@ -74,15 +86,14 @@
 
 <div id="teacherDashboard" class="container hidden">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-        <h3>📋 제출 목록 (채점 화면 고정)</h3>
-        <button class="btn" style="background:#8e8e93; padding:5px 15px;" onclick="location.reload()">나가기</button>
+        <h3>📋 채점 센터</h3>
+        <button class="btn" style="background:#8e8e93; padding:5px 15px;" onclick="location.reload()">로그아웃</button>
     </div>
-    <div id="logList">목록 로딩 중...</div>
+    <div id="logList">목록을 불러오고 있습니다...</div>
 </div>
 
-<!-- 교사용 로그인 레이아웃 생략 -->
 <div id="teacherLogin" class="container hidden">
-    <input type="password" id="tPass" placeholder="비밀번호 1234" style="width:100%; padding:15px; margin-bottom:10px;">
+    <input type="password" id="tPass" placeholder="비밀번호 1234" style="width:100%; padding:15px; border-radius:10px; border:1px solid #ddd; margin-bottom:10px; box-sizing:border-box;">
     <button class="btn" style="background:#5856d6; width:100%;" onclick="checkTeacher()">로그인</button>
 </div>
 
@@ -100,13 +111,27 @@
     const database = firebase.database();
     let timer, seconds = 0, currentProblems = [], canvases = [], currentSet = 1, targetSets = 1;
 
-    function showView(id) { document.querySelectorAll('.container').forEach(c => c.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
-    function initStudent() { showView('studentMain'); }
+    const subSteps = {
+        add: [{v: "1", t: "받아올림 몇+몇"}, {v: "2", t: "받아올림 몇십몇+몇"}, {v: "3", t: "몇십몇+몇십몇"}],
+        sub: [{v: "1", t: "받아내림 몇십-몇"}, {v: "2", t: "몇십몇-몇십몇"}]
+    };
 
-    function startContinuousQuiz() { 
-        currentSet = 1; targetSets = parseInt(document.getElementById('setCount').value); 
-        startQuiz(); 
+    function showView(id) { document.querySelectorAll('.container').forEach(c => c.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
+    function updateSubOptions() {
+        const main = document.getElementById('opMain').value;
+        document.getElementById('opSub').innerHTML = subSteps[main].map(s => `<option value="${s.v}">${s.t}</option>`).join('');
     }
+    function initStudent() { showView('studentMain'); updateSubOptions(); listenWrongCount(); }
+
+    function switchTab(tab) {
+        document.getElementById('tabNew').className = 'tab-item' + (tab==='new'?' tab-active':'');
+        document.getElementById('tabWrong').className = 'tab-item' + (tab==='wrong'?' tab-active':'');
+        document.getElementById('setupArea').classList.toggle('hidden', tab !== 'new');
+        document.getElementById('wrongArea').classList.toggle('hidden', tab !== 'wrong');
+        if(tab === 'wrong') renderWrongNotes();
+    }
+
+    function startContinuousQuiz() { currentSet = 1; targetSets = parseInt(document.getElementById('setCount').value); startQuiz(); }
 
     function startQuiz() {
         showView('quizSection'); seconds = 0;
@@ -117,8 +142,7 @@
         for(let i=0; i<8; i++) {
             const p = { n1: Math.floor(Math.random()*80)+10, n2: Math.floor(Math.random()*80)+10, op: document.getElementById('opMain').value==='add'?'+':'-', type: type };
             if(p.op==='-' && p.n1 < p.n2) [p.n1, p.n2] = [p.n2, p.n1];
-            currentProblems.push(p);
-            createCard(area, p, i, 'c');
+            currentProblems.push(p); createCard(area, p, i, 'c');
         }
         if(timer) clearInterval(timer);
         timer = setInterval(() => { seconds++; document.getElementById('timerDisplay').innerText = `${Math.floor(seconds/60).toString().padStart(2,'0')}:${(seconds%60).toString().padStart(2,'0')}`; }, 1000);
@@ -127,14 +151,11 @@
     function createCard(target, p, i, prefix) {
         const card = document.createElement('div');
         card.className = 'problem-card';
-        let probHtml = p.type === 'horiz' ? 
-            `<div class="text-horiz">${p.n1} ${p.op} ${p.n2} =</div>` :
-            `<div class="text-vert"><span class="vert-op">${p.op}</span>${p.n1}<br>${p.n2}<div class="vert-line"></div></div>`;
-        
+        let probHtml = p.type === 'horiz' ? `<div class="text-horiz">${p.n1} ${p.op} ${p.n2} =</div>` : `<div class="text-vert"><span class="vert-op">${p.op}</span>${p.n1}<br>${p.n2}<div class="vert-line"></div></div>`;
         card.innerHTML = `
             <div class="problem-header">${probHtml}</div>
             <div class="canvas-wrapper"><canvas id="${prefix}-canv-${i}"></canvas></div>
-            <button onclick="clearCnv('${prefix}-canv-${i}')" style="position:absolute; bottom:8px; left:8px; border:none; background:rgba(0,0,0,0.1); padding:4px 10px; border-radius:5px; font-size:0.7rem;">지우기</button>
+            <button class="btn-clear" onclick="clearCnv('${prefix}-canv-${i}')">지우기</button>
         `;
         target.appendChild(card);
         setTimeout(() => setupCanvas(`${prefix}-canv-${i}`), 50);
@@ -155,84 +176,57 @@
     function clearCnv(id) { const c = document.getElementById(id); if(c) c.getContext('2d').clearRect(0,0,c.width,c.height); }
 
     function handleSetSubmit() {
-        const data = { date: new Date().toLocaleString(), timeSpent: document.getElementById('timerDisplay').innerText, imgs: canvases.map(c => c.toDataURL()), problems: currentProblems, grades: new Array(8).fill(null), setNum: currentSet };
+        const data = { date: new Date().toLocaleString('ko-KR', {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'}), timeSpent: document.getElementById('timerDisplay').innerText, imgs: canvases.map(c => c.toDataURL()), problems: currentProblems, grades: new Array(8).fill(null), setNum: currentSet };
         database.ref('records').push(data).then(() => {
-            if(currentSet < targetSets) { currentSet++; startQuiz(); window.scrollTo(0,0); } 
-            else { alert("학습 완료!"); location.reload(); }
+            if(currentSet < targetSets) { currentSet++; startQuiz(); window.scrollTo(0,0); } else { alert("모든 학습을 완료했습니다!"); location.reload(); }
         });
     }
 
-    function checkTeacher() { if(document.getElementById('tPass').value === "1234") { showView('teacherDashboard'); loadTeacherLogs(); } else alert("오류"); }
+    function checkTeacher() { if(document.getElementById('tPass').value === "1234") { showView('teacherDashboard'); loadTeacherLogs(); } else alert("비밀번호가 틀렸습니다."); }
 
-    /* 채점 기능 핵심 수선: on('value') 대신 once('value')와 전용 업데이트 함수 사용 */
     function loadTeacherLogs() {
-        // 처음 한 번만 전체 목록 로드
         database.ref('records').once('value', (snap) => {
-            renderLogs(snap.val());
-        });
-        // 새로운 제출이 생겼을 때만 새로고침 (채점 중엔 동작하지 않도록 처리 가능하지만 일단 기본 유지)
-    }
-
-    function renderLogs(logs) {
-        const list = document.getElementById('logList');
-        if (!logs) { list.innerHTML = "내역 없음"; return; }
-        list.innerHTML = "";
-        Object.keys(logs).reverse().forEach(id => {
-            const l = logs[id];
-            const item = document.createElement('div');
-            item.className = 'log-item';
-            item.innerHTML = `
-                <div class="log-header" onclick="toggleLog('${id}')">
-                    <strong>${l.date}</strong> <span>제${l.setNum}장</span>
-                </div>
-                <div id="content-${id}" class="log-content" style="display:none; padding:10px;">
-                    <div class="quiz-grid">
-                        ${l.problems.map((p, i) => {
-                            let probHtml = p.type === 'horiz' ? 
-                                `<div class="text-horiz" style="font-size:1.2rem;">${p.n1} ${p.op} ${p.n2} =</div>` :
-                                `<div class="text-vert" style="font-size:1.2rem;"><span class="vert-op">${p.op}</span>${p.n1}<br>${p.n2}<div class="vert-line"></div></div>`;
-                            return `
-                                <div class="problem-card" style="height:230px;">
-                                    <div class="problem-header" style="min-height:60px;">${probHtml}</div>
-                                    <img src="${l.imgs[i]}" style="width:100%; height:80px; object-fit:contain; background:#f9f9f9;">
-                                    <div class="grade-btn-group">
-                                        <button class="btn btn-o" onclick="gradeOnline('${id}', ${i}, 'O')">O</button>
-                                        <button class="btn btn-x" onclick="gradeOnline('${id}', ${i}, 'X')">X</button>
-                                    </div>
-                                    <div class="mark-overlay ${l.grades && l.grades[i]==='O'?'mark-o':'mark-x'}" id="mark-${id}-${i}">${(l.grades && l.grades[i]) || ''}</div>
-                                </div>
-                            `;
-                        }).join('')}
-                    </div>
-                </div>
-            `;
-            list.appendChild(item);
+            const logs = snap.val(); const list = document.getElementById('logList');
+            if(!logs) { list.innerHTML = "제출된 내역이 없습니다."; return; }
+            list.innerHTML = "";
+            Object.keys(logs).reverse().forEach(id => {
+                const l = logs[id]; const item = document.createElement('div');
+                item.className = 'log-item';
+                item.innerHTML = `<div class="log-header" onclick="toggleLog('${id}')"><strong>${l.date}</strong> <span>제${l.setNum}장 (${l.timeSpent})</span></div>
+                <div id="content-${id}" style="display:none; padding:10px;">
+                    <div class="quiz-grid">${l.problems.map((p, i) => `
+                        <div class="problem-card" style="height:230px;">
+                            <div class="problem-header" style="min-height:60px;">${p.type==='horiz'?p.n1+' '+p.op+' '+p.n2+' =':p.n1+'<br>'+p.op+' '+p.n2}</div>
+                            <img src="${l.imgs[i]}" style="width:100%; height:80px; object-fit:contain; background:#f9f9f9;">
+                            <div style="display:flex; gap:5px; margin-top:8px;">
+                                <button class="btn" style="background:var(--ios-green); flex:1;" onclick="gradeOnline('${id}', ${i}, 'O')">O</button>
+                                <button class="btn" style="background:var(--ios-red); flex:1;" onclick="gradeOnline('${id}', ${i}, 'X')">X</button>
+                            </div>
+                            <div class="mark-overlay ${l.grades&&l.grades[i]==='O'?'mark-o':'mark-x'}" id="mark-${id}-${i}">${(l.grades&&l.grades[i])||''}</div>
+                        </div>`).join('')}</div>
+                </div>`;
+                list.appendChild(item);
+            });
         });
     }
 
-    function toggleLog(id) {
-        const el = document.getElementById(`content-${id}`);
-        el.style.display = (el.style.display === 'block') ? 'none' : 'block';
-    }
+    function toggleLog(id) { const el = document.getElementById(`content-${id}`); el.style.display = (el.style.display==='block')?'none':'block'; }
 
     function gradeOnline(rid, idx, status) {
-        // 1. DB 즉시 업데이트 (목록을 다시 그리지 않음)
         database.ref(`records/${rid}/grades/${idx}`).set(status);
-        
-        // 2. 화면의 마크만 즉시 변경 (목록이 닫히지 않음)
         const mark = document.getElementById(`mark-${rid}-${idx}`);
-        if(mark) {
-            mark.innerText = status;
-            mark.className = `mark-overlay ${status === 'O' ? 'mark-o' : 'mark-x'}`;
-        }
-        
-        // 3. 오답인 경우에만 오답노트에 데이터 복사
-        if(status === 'X') {
-            database.ref(`records/${rid}/problems/${idx}`).once('value', s => {
-                database.ref('wrongNotes').push({ problem: s.val() });
-            });
-        }
+        if(mark) { mark.innerText = status; mark.className = `mark-overlay ${status==='O'?'mark-o':'mark-x'}`; }
+        if(status === 'X') { database.ref(`records/${rid}/problems/${idx}`).once('value', s => database.ref('wrongNotes').push({ problem: s.val() })); }
     }
+
+    function listenWrongCount() { database.ref('wrongNotes').on('value', s => document.getElementById('wrongCount').innerText = s.val() ? Object.keys(s.val()).length : 0); }
+    function renderWrongNotes() {
+        database.ref('wrongNotes').once('value', s => {
+            const area = document.getElementById('wrongGrid'); area.innerHTML = "";
+            if(s.val()) Object.keys(s.val()).forEach((id, i) => createCard(area, s.val()[id].problem, i, 'w'));
+        });
+    }
+    function clearWrongNotes() { if(confirm("오답 공부를 완료했나요?")) database.ref('wrongNotes').remove().then(() => location.reload()); }
 </script>
 </body>
 </html>
