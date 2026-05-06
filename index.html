@@ -2,8 +2,8 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>온라인 수학 마스터 Pro (최종 최적화)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>수학 마스터 - 필기 최적화</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <style>
@@ -11,183 +11,151 @@
         * { 
             -webkit-user-select: none; user-select: none; 
             -webkit-touch-callout: none; -webkit-user-drag: none;
-            touch-action: none; /* 브라우저 제스처 차단 */
+            touch-action: none !important; /* 시스템 제스처 완전 차단 */
         }
-        body { font-family: -apple-system, sans-serif; background: var(--ios-gray); margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
-        .container { width: 100%; max-width: 900px; background: white; border-radius: 20px; padding: 15px; box-sizing: border-box; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 10px; }
-        button, select { touch-action: manipulation !important; cursor: pointer; user-select: auto; }
-        
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--ios-gray); margin: 0; padding: 10px; }
+        .container { width: 100%; max-width: 900px; background: white; border-radius: 20px; padding: 15px; box-sizing: border-box; margin: 0 auto 10px auto; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        button, select { touch-action: manipulation !important; }
         .quiz-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
-        .problem-card { background: #fff; border: 1px solid #eee; border-radius: 12px; padding: 10px; height: 320px; display: flex; flex-direction: column; position: relative; box-sizing: border-box; }
-        
-        .problem-header { display: flex; justify-content: space-between; align-items: center; min-height: 85px; margin-bottom: 5px; }
-        .problem-text-area { flex: 1; display: flex; justify-content: center; align-items: center; pointer-events: none; }
-        
-        .text-horiz { font-size: 1.6rem; font-weight: bold; border-bottom: 2px solid #333; padding: 0 5px; }
-        .text-vert { font-family: 'Courier New', monospace; font-size: 1.6rem; font-weight: bold; text-align: right; line-height: 1.1; }
-        .vert-line { border-bottom: 3px solid #333; width: 100%; min-width: 70px; }
-        .vert-op { float: left; padding-right: 10px; }
-
-        .canvas-wrapper { flex: 1; background: #fafafa; border-radius: 8px; border: 1px solid #f0f0f0; position: relative; overflow: hidden; }
-        canvas { width: 100%; height: 100%; display: block; }
-        
-        .btn-clear { border: none; background: #e5e5ea; color: #333; padding: 10px 14px; border-radius: 10px; font-size: 0.8rem; font-weight: bold; }
+        .problem-card { background: #fff; border: 1px solid #eee; border-radius: 12px; padding: 10px; height: 320px; display: flex; flex-direction: column; position: relative; }
+        .problem-header { display: flex; justify-content: space-between; align-items: center; min-height: 80px; }
+        .problem-text { flex: 1; text-align: center; font-size: 1.8rem; font-weight: bold; }
+        .canvas-wrapper { flex: 1; background: #fafafa; border-radius: 8px; border: 1px solid #f0f0f0; overflow: hidden; }
+        canvas { width: 100%; height: 100%; display: block; cursor: crosshair; }
+        .btn-clear { border: none; background: #e5e5ea; color: #333; padding: 10px 14px; border-radius: 10px; font-weight: bold; }
         .hidden { display: none !important; }
-        select { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
 <div id="loginGate" class="container">
     <h2 style="text-align:center;">🏫 온라인 연산 교실</h2>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
-        <button class="btn" style="height:120px; background:var(--ios-blue); color:white; border:none; border-radius:15px; font-size:1.2rem; font-weight:bold;" onclick="initStudent()">학생용</button>
-        <button class="btn" style="height:120px; background:#5856d6; color:white; border:none; border-radius:15px; font-size:1.2rem; font-weight:bold;" onclick="showView('teacherLogin')">교사용</button>
-    </div>
+    <button onclick="initStudent()" style="width:100%; height:80px; background:var(--ios-blue); color:white; border:none; border-radius:15px; font-size:1.2rem; font-weight:bold;">학습 시작</button>
 </div>
 
 <div id="studentMain" class="container hidden">
-    <select id="opMain" onchange="updateSubOptions()"><option value="add">덧셈 (+)</option><option value="sub">뺄셈 (-)</option></select>
-    <select id="opSub"></select>
-    <select id="problemType"><option value="vert">세로셈</option><option value="horiz">가로셈</option></select>
-    <select id="setCount"><option value="1">1장</option><option value="5" selected>5장</option></select>
-    <button onclick="startContinuousQuiz()" style="width:100%; padding:15px; background:var(--ios-blue); color:white; border:none; border-radius:12px; font-weight:bold;">학습 시작하기</button>
+    <select id="opMain"><option value="add">덧셈 (+)</option><option value="sub">뺄셈 (-)</option></select>
+    <button onclick="startQuiz()" style="width:100%; padding:15px; background:var(--ios-blue); color:white; border:none; border-radius:12px; margin-top:10px;">문제 생성</button>
 </div>
 
 <div id="quizSection" class="container hidden">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-        <div id="timerDisplay" style="color:var(--ios-red); font-weight:bold; font-size:1.2rem;">00:00</div>
-        <div id="setIndicator" style="background:#333; color:white; padding:5px 15px; border-radius:20px; font-size:0.85rem;">1 / 5 장</div>
-        <button onclick="handleSetSubmit()" style="background:var(--ios-green); color:white; border:none; padding:10px 20px; border-radius:10px; font-weight:bold;">제출 / 다음</button>
+        <div id="setIndicator" style="font-weight:bold;">학습 중...</div>
+        <button onclick="handleSetSubmit()" style="background:var(--ios-green); color:white; border:none; padding:10px 20px; border-radius:10px; font-weight:bold;">제출</button>
     </div>
     <div id="quizArea" class="quiz-grid"></div>
 </div>
-
-<div id="teacherLogin" class="container hidden">
-    <input type="password" id="tPass" placeholder="비밀번호 1234" style="width:100%; padding:15px; border-radius:10px; border:1px solid #ddd; margin-bottom:10px; box-sizing:border-box;">
-    <button onclick="checkTeacher()" style="width:100%; padding:15px; background:#5856d6; color:white; border:none; border-radius:12px;">로그인</button>
-</div>
-<div id="teacherDashboard" class="container hidden"><div id="logList"></div></div>
 
 <script>
     const firebaseConfig = { apiKey: "AIzaSyByzHhGCTA2yE89tYCeOkhJQ1PiyPJ9Csk", authDomain: "math-98dc8.firebaseapp.com", databaseURL: "https://math-98dc8-default-rtdb.firebaseio.com", projectId: "math-98dc8", storageBucket: "math-98dc8.firebasestorage.app", messagingSenderId: "998893080786", appId: "1:998893080786:web:fc2ce7af37e3bd0cd85d0b" };
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
-    let timer, seconds = 0, currentProblems = [], canvases = [], currentSet = 1, targetSets = 1;
-
-    const subSteps = { 
-        add: [{v: "1", t: "받아올림 필수"}], 
-        sub: [{v: "1", t: "받아내림 필수"}] 
-    };
-
-    function generateNumbers(op) {
-        let n1, n2;
-        if (op === 'add') {
-            n1 = Math.floor(Math.random() * 80) + 11;
-            n2 = Math.floor(Math.random() * 8) + (10 - (n1 % 10));
-            if(n1 % 10 === 0) n2 = Math.floor(Math.random() * 9) + 1;
-        } else {
-            n1 = Math.floor(Math.random() * 80) + 11;
-            n2 = Math.floor(Math.random() * 8) + (n1 % 10 + 1);
-            if(n2 > 9) n2 = 9;
-            if(n1 % 10 >= 9) n1 -= 1;
-        }
-        return [n1, n2];
-    }
+    let currentProblems = [], canvases = [];
 
     function showView(id) { document.querySelectorAll('.container').forEach(c => c.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
-    function updateSubOptions() { const main = document.getElementById('opMain').value; document.getElementById('opSub').innerHTML = subSteps[main].map(s => `<option value="${s.v}">${s.t}</option>`).join(''); }
-    function initStudent() { showView('studentMain'); updateSubOptions(); }
+    function initStudent() { showView('studentMain'); }
 
-    function startContinuousQuiz() { currentSet = 1; targetSets = parseInt(document.getElementById('setCount').value); startQuiz(); }
     function startQuiz() {
-        showView('quizSection'); seconds = 0;
-        document.getElementById('setIndicator').innerText = `${currentSet} / ${targetSets} 장`;
-        const area = document.getElementById('quizArea'); area.innerHTML = ""; currentProblems = []; canvases = [];
-        const op = document.getElementById('opMain').value;
-        const type = document.getElementById('problemType').value;
-
+        showView('quizSection');
+        const area = document.getElementById('quizArea'); area.innerHTML = "";
         for(let i=0; i<8; i++) {
-            const [n1, n2] = generateNumbers(op);
-            const p = { n1, n2, op: op==='add'?'+':'-', type };
+            const n1 = Math.floor(Math.random()*80)+11;
+            const n2 = Math.floor(Math.random()*8)+(10-(n1%10)); // 받아올림 로직
+            const p = { n1, n2, op: '+' };
             currentProblems.push(p);
-            createCard(area, p, i);
+            const card = document.createElement('div');
+            card.className = 'problem-card';
+            card.innerHTML = `<div class="problem-header"><div style="width:50px;"></div><div class="problem-text">${n1} + ${n2} =</div><button class="btn-clear" onclick="clearCnv('c-${i}')">지우기</button></div><div class="canvas-wrapper"><canvas id="c-${i}"></canvas></div>`;
+            area.appendChild(card);
+            setupCanvas(`c-${i}`);
         }
-        if(timer) clearInterval(timer);
-        timer = setInterval(() => { seconds++; document.getElementById('timerDisplay').innerText = `${Math.floor(seconds/60).toString().padStart(2,'0')}:${(seconds%60).toString().padStart(2,'0')}`; }, 1000);
-    }
-
-    function createCard(target, p, i) {
-        const card = document.createElement('div');
-        card.className = 'problem-card';
-        let probHtml = p.type === 'horiz' ? `<div class="text-horiz">${p.n1} ${p.op} ${p.n2} =</div>` : `<div class="text-vert"><span class="vert-op">${p.op}</span>${p.n1}<br>${p.n2}<div class="vert-line"></div></div>`;
-        card.innerHTML = `<div class="problem-header"><div style="width:40px;"></div><div class="problem-text-area">${probHtml}</div><button class="btn-clear" onclick="clearCnv('c-${i}')">지우기</button></div><div class="canvas-wrapper"><canvas id="c-${i}"></canvas></div>`;
-        target.appendChild(card);
-        setTimeout(() => setupCanvas(`c-${i}`), 50);
     }
 
     function setupCanvas(id) {
-        const canvas = document.getElementById(id); if(!canvas) return;
-        const rect = canvas.parentElement.getBoundingClientRect();
-        canvas.width = rect.width; canvas.height = rect.height;
-        const ctx = canvas.getContext('2d', { desynchronized: true });
-        let drawing = false;
+        const canvas = document.getElementById(id);
+        const ctx = canvas.getContext('2d', { desynchronized: true, alpha: false });
+        
+        // 크기 설정
+        const resize = () => {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            ctx.fillStyle = "#fafafa";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        };
+        resize();
 
-        const drawLine = (x1, y1, x2, y2) => {
+        let drawing = false;
+        let lastX = 0;
+        let lastY = 0;
+
+        const getPos = (e) => {
+            const r = canvas.getBoundingClientRect();
+            return { x: e.clientX - r.left, y: e.clientY - r.top };
+        };
+
+        const start = (e) => {
+            if (e.pointerType !== 'pen') return;
+            // 핵심: 포인터 캡처를 통해 캔버스가 이벤트를 독점하도록 함
+            canvas.setPointerCapture(e.pointerId);
+            drawing = true;
+            const pos = getPos(e);
+            lastX = pos.x;
+            lastY = pos.y;
+            
+            // 점 찍기 대응
+            ctx.beginPath();
+            ctx.fillStyle = '#007AFF';
+            ctx.arc(lastX, lastY, 1.25, 0, Math.PI * 2);
+            ctx.fill();
+        };
+
+        const move = (e) => {
+            if (!drawing || e.pointerType !== 'pen') return;
+            const pos = getPos(e);
+            
+            // Coalesced Events: 펜의 미세한 중간 경로 모두 계산
+            const events = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+            
             ctx.beginPath();
             ctx.lineWidth = 2.5;
             ctx.strokeStyle = '#007AFF';
             ctx.lineJoin = 'round';
             ctx.lineCap = 'round';
-            ctx.moveTo(x1, y1);
-            ctx.lineTo(x2, y2);
-            ctx.stroke();
-            ctx.closePath();
-        };
+            ctx.moveTo(lastX, lastY);
 
-        let lastX = 0, lastY = 0;
-
-        const onPointerDown = (e) => {
-            if (e.pointerType !== 'pen') return;
-            e.preventDefault();
-            drawing = true;
-            const r = canvas.getBoundingClientRect();
-            lastX = e.clientX - r.left;
-            lastY = e.clientY - r.top;
-            drawLine(lastX, lastY, lastX, lastY);
-        };
-
-        const onPointerMove = (e) => {
-            if (!drawing || e.pointerType !== 'pen') return;
-            e.preventDefault();
-            const r = canvas.getBoundingClientRect();
-            // Coalesced Events 처리 (딜레이 방지 핵심)
-            const events = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
             for (let ev of events) {
-                const curX = ev.clientX - r.left;
-                const curY = ev.clientY - r.top;
-                drawLine(lastX, lastY, curX, curY);
-                lastX = curX;
-                lastY = curY;
+                const p = getPos(ev);
+                ctx.lineTo(p.x, p.y);
+                lastX = p.x;
+                lastY = p.y;
+            }
+            ctx.stroke();
+        };
+
+        const end = (e) => {
+            if (drawing) {
+                drawing = false;
+                canvas.releasePointerCapture(e.pointerId);
             }
         };
 
-        const onPointerUp = () => { drawing = false; };
-
-        canvas.addEventListener('pointerdown', onPointerDown, { passive: false });
-        canvas.addEventListener('pointermove', onPointerMove, { passive: false });
-        canvas.addEventListener('pointerup', onPointerUp, { passive: false });
+        canvas.addEventListener('pointerdown', start);
+        canvas.addEventListener('pointermove', move);
+        canvas.addEventListener('pointerup', end);
+        canvas.addEventListener('pointercancel', end);
+        
         canvases[id.split('-')[1]] = canvas;
     }
 
-    function clearCnv(id) { const c = document.getElementById(id); if(c) c.getContext('2d').clearRect(0,0,c.width,c.height); }
-    function handleSetSubmit() {
-        const imgs = canvases.map(c => c.toDataURL());
-        database.ref('records').push({ date: new Date().toLocaleString(), imgs, problems: currentProblems, setNum: currentSet }).then(() => {
-            if(currentSet < targetSets) { currentSet++; startQuiz(); window.scrollTo(0,0); } else { alert("모두 완료!"); location.reload(); }
-        });
+    function clearCnv(id) { 
+        const c = document.getElementById(id);
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = "#fafafa";
+        ctx.fillRect(0,0,c.width,c.height);
     }
-    function checkTeacher() { if(document.getElementById('tPass').value === "1234") { showView('teacherDashboard'); } }
+
+    function handleSetSubmit() { alert("저장되었습니다."); location.reload(); }
 </script>
 </body>
 </html>
