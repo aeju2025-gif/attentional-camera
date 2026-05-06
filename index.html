@@ -3,159 +3,149 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>수학 마스터 - 필기 최적화</title>
+    <title>연산 마스터 Pro - 딜레이 해결</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <style>
-        :root { --ios-blue: #007AFF; --ios-gray: #f2f2f7; --ios-green: #34c759; --ios-red: #ff3b30; }
-        * { 
-            -webkit-user-select: none; user-select: none; 
-            -webkit-touch-callout: none; -webkit-user-drag: none;
-            touch-action: none !important; /* 시스템 제스처 완전 차단 */
+        :root { --ios-blue: #007AFF; --ios-gray: #f2f2f7; --ios-green: #34c759; }
+        * { -webkit-user-select: none; user-select: none; touch-action: none !important; }
+        body { font-family: -apple-system, sans-serif; background: var(--ios-gray); margin: 0; padding: 10px; overflow: hidden; }
+        .container { width: 100%; max-width: 900px; margin: 0 auto; height: 100vh; display: flex; flex-direction: column; }
+        
+        /* 헤더 영역 */
+        .quiz-header { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: white; border-radius: 15px; margin-bottom: 10px; z-index: 10; }
+        
+        /* 문제 그리드 */
+        .quiz-grid { 
+            display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(4, 1fr); 
+            gap: 10px; flex: 1; position: relative; padding-bottom: 20px;
         }
-        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--ios-gray); margin: 0; padding: 10px; }
-        .container { width: 100%; max-width: 900px; background: white; border-radius: 20px; padding: 15px; box-sizing: border-box; margin: 0 auto 10px auto; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        button, select { touch-action: manipulation !important; }
-        .quiz-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
-        .problem-card { background: #fff; border: 1px solid #eee; border-radius: 12px; padding: 10px; height: 320px; display: flex; flex-direction: column; position: relative; }
-        .problem-header { display: flex; justify-content: space-between; align-items: center; min-height: 80px; }
-        .problem-text { flex: 1; text-align: center; font-size: 1.8rem; font-weight: bold; }
-        .canvas-wrapper { flex: 1; background: #fafafa; border-radius: 8px; border: 1px solid #f0f0f0; overflow: hidden; }
-        canvas { width: 100%; height: 100%; display: block; cursor: crosshair; }
-        .btn-clear { border: none; background: #e5e5ea; color: #333; padding: 10px 14px; border-radius: 10px; font-weight: bold; }
+        .problem-box { 
+            background: white; border-radius: 12px; border: 1px solid #ddd;
+            display: flex; flex-direction: column; position: relative; overflow: hidden;
+        }
+        .prob-num { position: absolute; left: 10px; top: 10px; color: #999; font-size: 0.8rem; }
+        .prob-text { flex: 1; display: flex; justify-content: center; align-items: center; font-size: 1.8rem; font-weight: bold; border-bottom: 1px dashed #eee; }
+        .draw-area { flex: 1.5; background: #fafafa; } /* 그림이 그려질 공간 (시각적 구분) */
+
+        /* 통합 캔버스: 모든 문제 위를 덮음 */
+        #mainCanvas {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: auto; z-index: 5;
+        }
+
+        .btn-clear-all { background: #e5e5ea; border: none; padding: 8px 15px; border-radius: 10px; font-weight: bold; }
         .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-<div id="loginGate" class="container">
-    <h2 style="text-align:center;">🏫 온라인 연산 교실</h2>
-    <button onclick="initStudent()" style="width:100%; height:80px; background:var(--ios-blue); color:white; border:none; border-radius:15px; font-size:1.2rem; font-weight:bold;">학습 시작</button>
+<div id="setupPage" class="container" style="justify-content:center; align-items:center;">
+    <button onclick="initQuiz()" style="width:200px; height:200px; border-radius:50%; border:none; background:var(--ios-blue); color:white; font-size:1.5rem; font-weight:bold; box-shadow: 0 10px 20px rgba(0,122,255,0.3);">학습 시작</button>
 </div>
 
-<div id="studentMain" class="container hidden">
-    <select id="opMain"><option value="add">덧셈 (+)</option><option value="sub">뺄셈 (-)</option></select>
-    <button onclick="startQuiz()" style="width:100%; padding:15px; background:var(--ios-blue); color:white; border:none; border-radius:12px; margin-top:10px;">문제 생성</button>
-</div>
-
-<div id="quizSection" class="container hidden">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-        <div id="setIndicator" style="font-weight:bold;">학습 중...</div>
-        <button onclick="handleSetSubmit()" style="background:var(--ios-green); color:white; border:none; padding:10px 20px; border-radius:10px; font-weight:bold;">제출</button>
+<div id="quizPage" class="container hidden">
+    <div class="quiz-header">
+        <button class="btn-clear-all" onclick="clearFullCanvas()">전체 지우기</button>
+        <div id="timer">00:00</div>
+        <button onclick="saveAndSubmit()" style="background:var(--ios-green); color:white; border:none; padding:10px 25px; border-radius:10px; font-weight:bold;">제출하기</button>
     </div>
-    <div id="quizArea" class="quiz-grid"></div>
+    
+    <div style="position:relative; flex:1;">
+        <!-- 배경 레이어: 문제 텍스트 -->
+        <div id="quizArea" class="quiz-grid"></div>
+        <!-- 전면 레이어: 단 하나의 캔버스 -->
+        <canvas id="mainCanvas"></canvas>
+    </div>
 </div>
 
 <script>
     const firebaseConfig = { apiKey: "AIzaSyByzHhGCTA2yE89tYCeOkhJQ1PiyPJ9Csk", authDomain: "math-98dc8.firebaseapp.com", databaseURL: "https://math-98dc8-default-rtdb.firebaseio.com", projectId: "math-98dc8", storageBucket: "math-98dc8.firebasestorage.app", messagingSenderId: "998893080786", appId: "1:998893080786:web:fc2ce7af37e3bd0cd85d0b" };
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
-    let currentProblems = [], canvases = [];
 
-    function showView(id) { document.querySelectorAll('.container').forEach(c => c.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
-    function initStudent() { showView('studentMain'); }
+    let ctx, drawing = false, lastX, lastY;
+    const canvas = document.getElementById('mainCanvas');
 
-    function startQuiz() {
-        showView('quizSection');
-        const area = document.getElementById('quizArea'); area.innerHTML = "";
-        for(let i=0; i<8; i++) {
+    function initQuiz() {
+        document.getElementById('setupPage').classList.add('hidden');
+        document.getElementById('quizPage').classList.remove('hidden');
+        
+        const area = document.getElementById('quizArea');
+        area.innerHTML = "";
+        for(let i=1; i<=8; i++) {
             const n1 = Math.floor(Math.random()*80)+11;
-            const n2 = Math.floor(Math.random()*8)+(10-(n1%10)); // 받아올림 로직
-            const p = { n1, n2, op: '+' };
-            currentProblems.push(p);
-            const card = document.createElement('div');
-            card.className = 'problem-card';
-            card.innerHTML = `<div class="problem-header"><div style="width:50px;"></div><div class="problem-text">${n1} + ${n2} =</div><button class="btn-clear" onclick="clearCnv('c-${i}')">지우기</button></div><div class="canvas-wrapper"><canvas id="c-${i}"></canvas></div>`;
-            area.appendChild(card);
-            setupCanvas(`c-${i}`);
+            const n2 = Math.floor(Math.random()*8)+(10-(n1%10));
+            area.innerHTML += `
+                <div class="problem-box">
+                    <div class="prob-num">${i}</div>
+                    <div class="prob-text">${n1} + ${n2} = </div>
+                    <div class="draw-area"></div>
+                </div>`;
         }
+        setupSingleCanvas();
     }
 
-    function setupCanvas(id) {
-        const canvas = document.getElementById(id);
-        const ctx = canvas.getContext('2d', { desynchronized: true, alpha: false });
+    function setupSingleCanvas() {
+        const rect = document.getElementById('quizArea').getBoundingClientRect();
+        canvas.width = rect.width;
+        canvas.height = rect.height;
         
-        // 크기 설정
-        const resize = () => {
-            const rect = canvas.parentElement.getBoundingClientRect();
-            canvas.width = rect.width;
-            canvas.height = rect.height;
-            ctx.fillStyle = "#fafafa";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-        };
-        resize();
-
-        let drawing = false;
-        let lastX = 0;
-        let lastY = 0;
-
-        const getPos = (e) => {
-            const r = canvas.getBoundingClientRect();
-            return { x: e.clientX - r.left, y: e.clientY - r.top };
-        };
-
-        const start = (e) => {
-            if (e.pointerType !== 'pen') return;
-            // 핵심: 포인터 캡처를 통해 캔버스가 이벤트를 독점하도록 함
-            canvas.setPointerCapture(e.pointerId);
-            drawing = true;
-            const pos = getPos(e);
-            lastX = pos.x;
-            lastY = pos.y;
-            
-            // 점 찍기 대응
+        // 지연 시간을 물리적으로 줄이는 옵션
+        ctx = canvas.getContext('2d', { desynchronized: true, alpha: true });
+        
+        const draw = (x1, y1, x2, y2) => {
             ctx.beginPath();
-            ctx.fillStyle = '#007AFF';
-            ctx.arc(lastX, lastY, 1.25, 0, Math.PI * 2);
-            ctx.fill();
-        };
-
-        const move = (e) => {
-            if (!drawing || e.pointerType !== 'pen') return;
-            const pos = getPos(e);
-            
-            // Coalesced Events: 펜의 미세한 중간 경로 모두 계산
-            const events = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
-            
-            ctx.beginPath();
-            ctx.lineWidth = 2.5;
             ctx.strokeStyle = '#007AFF';
-            ctx.lineJoin = 'round';
+            ctx.lineWidth = 3;
             ctx.lineCap = 'round';
-            ctx.moveTo(lastX, lastY);
-
-            for (let ev of events) {
-                const p = getPos(ev);
-                ctx.lineTo(p.x, p.y);
-                lastX = p.x;
-                lastY = p.y;
-            }
+            ctx.lineJoin = 'round';
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
             ctx.stroke();
         };
 
-        const end = (e) => {
-            if (drawing) {
-                drawing = false;
-                canvas.releasePointerCapture(e.pointerId);
+        canvas.addEventListener('pointerdown', (e) => {
+            if (e.pointerType !== 'pen') return;
+            canvas.setPointerCapture(e.pointerId);
+            drawing = true;
+            const r = canvas.getBoundingClientRect();
+            lastX = e.clientX - r.left;
+            lastY = e.clientY - r.top;
+            draw(lastX, lastY, lastX, lastY);
+        });
+
+        canvas.addEventListener('pointermove', (e) => {
+            if (!drawing || e.pointerType !== 'pen') return;
+            const r = canvas.getBoundingClientRect();
+            const events = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+            for (let ev of events) {
+                const curX = ev.clientX - r.left;
+                const curY = ev.clientY - r.top;
+                draw(lastX, lastY, curX, curY);
+                lastX = curX;
+                lastY = curY;
             }
-        };
+        });
 
-        canvas.addEventListener('pointerdown', start);
-        canvas.addEventListener('pointermove', move);
-        canvas.addEventListener('pointerup', end);
-        canvas.addEventListener('pointercancel', end);
-        
-        canvases[id.split('-')[1]] = canvas;
+        canvas.addEventListener('pointerup', (e) => {
+            drawing = false;
+            canvas.releasePointerCapture(e.pointerId);
+        });
     }
 
-    function clearCnv(id) { 
-        const c = document.getElementById(id);
-        const ctx = c.getContext('2d');
-        ctx.fillStyle = "#fafafa";
-        ctx.fillRect(0,0,c.width,c.height);
-    }
+    function clearFullCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
 
-    function handleSetSubmit() { alert("저장되었습니다."); location.reload(); }
+    function saveAndSubmit() {
+        const dataUrl = canvas.toDataURL();
+        database.ref('records').push({
+            date: new Date().toLocaleString(),
+            img: dataUrl
+        }).then(() => {
+            alert("제출 성공!");
+            location.reload();
+        });
+    }
 </script>
 </body>
 </html>
