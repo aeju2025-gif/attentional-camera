@@ -8,17 +8,31 @@
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <style>
         :root { --ios-blue: #007AFF; --ios-gray: #f2f2f7; --ios-green: #34c759; --ios-red: #ff3b30; --ios-orange: #ff9500; }
-        * { -webkit-user-select: none; user-select: none; touch-action: manipulation; }
-        input, button, select { user-select: auto; -webkit-user-select: auto; }
+        
+        /* 전체 조작 방지 및 시스템 드래그 차단 */
+        * { 
+            -webkit-user-select: none; 
+            user-select: none; 
+            touch-action: none; 
+            -webkit-touch-callout: none;
+        }
+
+        /* 입력 및 버튼만 선택/터치 허용 */
+        input, button, select, .canvas-wrapper { 
+            user-select: auto; 
+            -webkit-user-select: auto; 
+            touch-action: manipulation; 
+        }
+
         body { font-family: -apple-system, sans-serif; background: var(--ios-gray); margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
         .container { width: 100%; max-width: 900px; background: white; border-radius: 20px; padding: 15px; box-sizing: border-box; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 10px; }
-        .btn { padding: 12px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; color: white; font-size: 1rem; }
+        .btn { padding: 12px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; color: white; font-size: 1rem; -webkit-appearance: none; }
         .btn-student { background: var(--ios-blue); width: 100%; }
         select { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; font-size: 1rem; margin-bottom: 10px; background: white; }
         label { font-size: 0.85rem; color: #666; margin-bottom: 5px; display: block; padding-left: 5px; }
 
         .quiz-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
-        .problem-card { background: #fff; border: 1px solid #eee; border-radius: 12px; padding: 10px; position: relative; height: 260px; display: flex; flex-direction: column; box-sizing: border-box; }
+        .problem-card { background: #fff; border: 1px solid #eee; border-radius: 12px; padding: 10px; position: relative; height: 280px; display: flex; flex-direction: column; box-sizing: border-box; }
         
         .problem-header { display: flex; justify-content: center; align-items: center; min-height: 80px; margin-bottom: 5px; pointer-events: none; }
         .text-horiz { font-size: 1.8rem; font-weight: bold; border-bottom: 2px solid #333; padding: 0 10px; }
@@ -26,10 +40,18 @@
         .vert-line { border-bottom: 3px solid #333; margin-top: 2px; width: 100%; min-width: 80px; }
         .vert-op { float: left; padding-right: 15px; }
 
+        /* 캔버스 영역 조작 설정 */
         .canvas-wrapper { flex: 1; background: #fafafa; border-radius: 8px; border: 1px solid #f0f0f0; position: relative; overflow: hidden; touch-action: none; }
         canvas { width: 100%; height: 100%; display: block; }
         
-        .btn-clear { position: absolute; bottom: 8px; left: 8px; border: none; background: rgba(0,0,0,0.1); padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; z-index: 20; color: #333; pointer-events: auto; }
+        /* 지우기 버튼 드래그 방지 고정 */
+        .btn-clear { 
+            position: absolute; bottom: 8px; left: 8px; border: none; 
+            background: rgba(0,0,0,0.1); padding: 8px 14px; border-radius: 8px; 
+            font-size: 0.8rem; z-index: 50; color: #333; 
+            pointer-events: auto; touch-action: none;
+            -webkit-user-drag: none;
+        }
 
         .mark-overlay { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); font-size: 5rem; font-weight: bold; pointer-events: none; z-index: 10; opacity: 0.4; }
         .mark-o { color: var(--ios-green); }
@@ -39,6 +61,9 @@
         .tab-menu { display: flex; gap: 10px; margin-bottom: 15px; }
         .tab-item { flex: 1; padding: 12px; text-align: center; border-radius: 10px; font-weight: bold; background: #e5e5ea; cursor: pointer; }
         .tab-active { background: var(--ios-blue); color: white; }
+
+        .log-item { border-bottom: 1px solid #eee; margin-bottom: 5px; }
+        .log-header { padding: 10px; display: flex; justify-content: space-between; background: #f9f9f9; border-radius: 8px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -166,19 +191,52 @@
         const rect = canvas.parentElement.getBoundingClientRect();
         canvas.width = rect.width; canvas.height = rect.height;
         const ctx = canvas.getContext('2d'); let drawing = false;
-        const getPos = (e) => ({ x: e.clientX - canvas.getBoundingClientRect().left, y: e.clientY - canvas.getBoundingClientRect().top });
-        canvas.addEventListener('pointerdown', (e) => { if(e.pointerType==='pen'){ e.preventDefault(); drawing=true; ctx.beginPath(); const p=getPos(e); ctx.moveTo(p.x, p.y); } });
-        canvas.addEventListener('pointermove', (e) => { if(drawing && e.pointerType==='pen'){ e.preventDefault(); const p=getPos(e); ctx.lineWidth=2.5; ctx.strokeStyle='#007AFF'; ctx.lineTo(p.x, p.y); ctx.stroke(); } });
+        
+        const getPos = (e) => {
+            const r = canvas.getBoundingClientRect();
+            return { x: (e.clientX || e.touches[0].clientX) - r.left, y: (e.clientY || e.touches[0].clientY) - r.top };
+        };
+
+        // 펜 조작에만 반응 (애플펜슬 최적화)
+        canvas.addEventListener('pointerdown', (e) => { 
+            if(e.pointerType === 'pen' || e.pointerType === 'touch') {
+                drawing=true; 
+                ctx.beginPath(); 
+                const p=getPos(e); 
+                ctx.moveTo(p.x, p.y); 
+            }
+        });
+        canvas.addEventListener('pointermove', (e) => { 
+            if(drawing){ 
+                const p=getPos(e); 
+                ctx.lineWidth=2.5; 
+                ctx.strokeStyle='#007AFF'; 
+                ctx.lineJoin = 'round';
+                ctx.lineCap = 'round';
+                ctx.lineTo(p.x, p.y); 
+                ctx.stroke(); 
+            }
+        });
         canvas.addEventListener('pointerup', () => drawing=false);
+        canvas.addEventListener('pointerleave', () => drawing=false);
+
         if(id.startsWith('c-canv')) canvases[id.split('-').pop()] = canvas;
     }
 
     function clearCnv(id) { const c = document.getElementById(id); if(c) c.getContext('2d').clearRect(0,0,c.width,c.height); }
 
     function handleSetSubmit() {
-        const data = { date: new Date().toLocaleString('ko-KR', {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'}), timeSpent: document.getElementById('timerDisplay').innerText, imgs: canvases.map(c => c.toDataURL()), problems: currentProblems, grades: new Array(8).fill(null), setNum: currentSet };
+        const data = { 
+            date: new Date().toLocaleString('ko-KR', {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'}), 
+            timeSpent: document.getElementById('timerDisplay').innerText, 
+            imgs: canvases.map(c => c.toDataURL()), 
+            problems: currentProblems, 
+            grades: new Array(8).fill(null), 
+            setNum: currentSet 
+        };
         database.ref('records').push(data).then(() => {
-            if(currentSet < targetSets) { currentSet++; startQuiz(); window.scrollTo(0,0); } else { alert("모든 학습을 완료했습니다!"); location.reload(); }
+            if(currentSet < targetSets) { currentSet++; startQuiz(); window.scrollTo(0,0); } 
+            else { alert("모든 학습을 완료했습니다!"); location.reload(); }
         });
     }
 
@@ -196,7 +254,7 @@
                 <div id="content-${id}" style="display:none; padding:10px;">
                     <div class="quiz-grid">${l.problems.map((p, i) => `
                         <div class="problem-card" style="height:230px;">
-                            <div class="problem-header" style="min-height:60px;">${p.type==='horiz'?p.n1+' '+p.op+' '+p.n2+' =':p.n1+'<br>'+p.op+' '+p.n2}</div>
+                            <div class="problem-header" style="min-height:60/px;">${p.type==='horiz'?p.n1+' '+p.op+' '+p.n2+' =':p.n1+'<br>'+p.op+' '+p.n2}</div>
                             <img src="${l.imgs[i]}" style="width:100%; height:80px; object-fit:contain; background:#f9f9f9;">
                             <div style="display:flex; gap:5px; margin-top:8px;">
                                 <button class="btn" style="background:var(--ios-green); flex:1;" onclick="gradeOnline('${id}', ${i}, 'O')">O</button>
