@@ -9,24 +9,35 @@
     <style>
         :root { --ios-blue: #007AFF; --ios-gray: #f2f2f7; --ios-green: #34c759; --ios-red: #ff3b30; --ios-orange: #ff9500; }
         
-        /* 전체 조작 방지 및 시스템 드래그 차단 */
+        /* 기본 설정: 스크롤 허용, 텍스트 선택만 방지 */
         * { 
             -webkit-user-select: none; 
             user-select: none; 
-            touch-action: none; 
             -webkit-touch-callout: none;
         }
 
-        /* 입력 및 버튼만 선택/터치 허용 */
-        input, button, select, .canvas-wrapper { 
+        body { 
+            font-family: -apple-system, sans-serif; 
+            background: var(--ios-gray); 
+            margin: 0; 
+            padding: 10px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center;
+            overflow-y: auto; /* 세로 스크롤 허용 */
+            height: auto;
+        }
+
+        .container { width: 100%; max-width: 900px; background: white; border-radius: 20px; padding: 15px; box-sizing: border-box; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 10px; }
+        
+        /* 입력 요소 및 버튼 설정 */
+        input, button, select { 
             user-select: auto; 
             -webkit-user-select: auto; 
             touch-action: manipulation; 
         }
 
-        body { font-family: -apple-system, sans-serif; background: var(--ios-gray); margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
-        .container { width: 100%; max-width: 900px; background: white; border-radius: 20px; padding: 15px; box-sizing: border-box; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 10px; }
-        .btn { padding: 12px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; color: white; font-size: 1rem; -webkit-appearance: none; }
+        .btn { padding: 12px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; color: white; font-size: 1rem; }
         .btn-student { background: var(--ios-blue); width: 100%; }
         select { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; font-size: 1rem; margin-bottom: 10px; background: white; }
         label { font-size: 0.85rem; color: #666; margin-bottom: 5px; display: block; padding-left: 5px; }
@@ -40,16 +51,17 @@
         .vert-line { border-bottom: 3px solid #333; margin-top: 2px; width: 100%; min-width: 80px; }
         .vert-op { float: left; padding-right: 15px; }
 
-        /* 캔버스 영역 조작 설정 */
+        /* 캔버스 영역만 터치 액션 제한 (그리기 집중) */
         .canvas-wrapper { flex: 1; background: #fafafa; border-radius: 8px; border: 1px solid #f0f0f0; position: relative; overflow: hidden; touch-action: none; }
         canvas { width: 100%; height: 100%; display: block; }
         
-        /* 지우기 버튼 드래그 방지 고정 */
+        /* 지우기 버튼: 드래그 절대 방지 */
         .btn-clear { 
             position: absolute; bottom: 8px; left: 8px; border: none; 
-            background: rgba(0,0,0,0.1); padding: 8px 14px; border-radius: 8px; 
-            font-size: 0.8rem; z-index: 50; color: #333; 
-            pointer-events: auto; touch-action: none;
+            background: rgba(0,0,0,0.1); padding: 10px 16px; border-radius: 8px; 
+            font-size: 0.8rem; z-index: 100; color: #333; 
+            pointer-events: auto; 
+            touch-action: none; /* 버튼 위에서 화면 밀림 방지 */
             -webkit-user-drag: none;
         }
 
@@ -63,7 +75,7 @@
         .tab-active { background: var(--ios-blue); color: white; }
 
         .log-item { border-bottom: 1px solid #eee; margin-bottom: 5px; }
-        .log-header { padding: 10px; display: flex; justify-content: space-between; background: #f9f9f9; border-radius: 8px; cursor: pointer; }
+        .log-header { padding: 15px; display: flex; justify-content: space-between; background: #f9f9f9; border-radius: 12px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -141,11 +153,17 @@
         sub: [{v: "1", t: "받아내림 몇십-몇"}, {v: "2", t: "몇십몇-몇십몇"}]
     };
 
-    function showView(id) { document.querySelectorAll('.container').forEach(c => c.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
+    function showView(id) { 
+        document.querySelectorAll('.container').forEach(c => c.classList.add('hidden')); 
+        document.getElementById(id).classList.remove('hidden'); 
+        window.scrollTo(0,0);
+    }
+
     function updateSubOptions() {
         const main = document.getElementById('opMain').value;
         document.getElementById('opSub').innerHTML = subSteps[main].map(s => `<option value="${s.v}">${s.t}</option>`).join('');
     }
+
     function initStudent() { showView('studentMain'); updateSubOptions(); listenWrongCount(); }
 
     function switchTab(tab) {
@@ -170,7 +188,10 @@
             currentProblems.push(p); createCard(area, p, i, 'c');
         }
         if(timer) clearInterval(timer);
-        timer = setInterval(() => { seconds++; document.getElementById('timerDisplay').innerText = `${Math.floor(seconds/60).toString().padStart(2,'0')}:${(seconds%60).toString().padStart(2,'0')}`; }, 1000);
+        timer = setInterval(() => { 
+            seconds++; 
+            document.getElementById('timerDisplay').innerText = `${Math.floor(seconds/60).toString().padStart(2,'0')}:${(seconds%60).toString().padStart(2,'0')}`; 
+        }, 1000);
     }
 
     function createCard(target, p, i, prefix) {
@@ -194,27 +215,20 @@
         
         const getPos = (e) => {
             const r = canvas.getBoundingClientRect();
-            return { x: (e.clientX || e.touches[0].clientX) - r.left, y: (e.clientY || e.touches[0].clientY) - r.top };
+            const clientX = e.clientX || (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+            const clientY = e.clientY || (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
+            return { x: clientX - r.left, y: clientY - r.top };
         };
 
-        // 펜 조작에만 반응 (애플펜슬 최적화)
         canvas.addEventListener('pointerdown', (e) => { 
             if(e.pointerType === 'pen' || e.pointerType === 'touch') {
-                drawing=true; 
-                ctx.beginPath(); 
-                const p=getPos(e); 
-                ctx.moveTo(p.x, p.y); 
+                drawing=true; ctx.beginPath(); const p=getPos(e); ctx.moveTo(p.x, p.y); 
             }
         });
         canvas.addEventListener('pointermove', (e) => { 
             if(drawing){ 
-                const p=getPos(e); 
-                ctx.lineWidth=2.5; 
-                ctx.strokeStyle='#007AFF'; 
-                ctx.lineJoin = 'round';
-                ctx.lineCap = 'round';
-                ctx.lineTo(p.x, p.y); 
-                ctx.stroke(); 
+                const p=getPos(e); ctx.lineWidth=2.5; ctx.strokeStyle='#007AFF'; ctx.lineJoin='round'; ctx.lineCap='round';
+                ctx.lineTo(p.x, p.y); ctx.stroke(); 
             }
         });
         canvas.addEventListener('pointerup', () => drawing=false);
@@ -250,12 +264,13 @@
             Object.keys(logs).reverse().forEach(id => {
                 const l = logs[id]; const item = document.createElement('div');
                 item.className = 'log-item';
-                item.innerHTML = `<div class="log-header" onclick="toggleLog('${id}')"><strong>${l.date}</strong> <span>제${l.setNum}장 (${l.timeSpent})</span></div>
+                item.innerHTML = `
+                <div class="log-header" onclick="toggleLog('${id}')"><strong>${l.date}</strong> <span>제${l.setNum}장 (${l.timeSpent})</span></div>
                 <div id="content-${id}" style="display:none; padding:10px;">
                     <div class="quiz-grid">${l.problems.map((p, i) => `
-                        <div class="problem-card" style="height:230px;">
-                            <div class="problem-header" style="min-height:60/px;">${p.type==='horiz'?p.n1+' '+p.op+' '+p.n2+' =':p.n1+'<br>'+p.op+' '+p.n2}</div>
-                            <img src="${l.imgs[i]}" style="width:100%; height:80px; object-fit:contain; background:#f9f9f9;">
+                        <div class="problem-card" style="height:250px;">
+                            <div class="problem-header" style="min-height:60px;">${p.type==='horiz'?p.n1+' '+p.op+' '+p.n2+' =':p.n1+'<br>'+p.op+' '+p.n2}</div>
+                            <img src="${l.imgs[i]}" style="width:100%; height:90px; object-fit:contain; background:#f9f9f9;">
                             <div style="display:flex; gap:5px; margin-top:8px;">
                                 <button class="btn" style="background:var(--ios-green); flex:1;" onclick="gradeOnline('${id}', ${i}, 'O')">O</button>
                                 <button class="btn" style="background:var(--ios-red); flex:1;" onclick="gradeOnline('${id}', ${i}, 'X')">X</button>
@@ -278,12 +293,14 @@
     }
 
     function listenWrongCount() { database.ref('wrongNotes').on('value', s => document.getElementById('wrongCount').innerText = s.val() ? Object.keys(s.val()).length : 0); }
+    
     function renderWrongNotes() {
         database.ref('wrongNotes').once('value', s => {
             const area = document.getElementById('wrongGrid'); area.innerHTML = "";
             if(s.val()) Object.keys(s.val()).forEach((id, i) => createCard(area, s.val()[id].problem, i, 'w'));
-        });
+        }); 
     }
+    
     function clearWrongNotes() { if(confirm("오답 공부를 완료했나요?")) database.ref('wrongNotes').remove().then(() => location.reload()); }
 </script>
 </body>
