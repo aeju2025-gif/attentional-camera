@@ -1,10 +1,12 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
 
-<title>수학 연산 학습 앱</title>
+<title>수학 연산 앱</title>
 
 <style>
 
@@ -26,7 +28,7 @@ body{
 
 .screen{
     min-height:100vh;
-    padding:20px;
+    padding:8px;
 }
 
 .center{
@@ -34,32 +36,32 @@ body{
     flex-direction:column;
     justify-content:center;
     align-items:center;
-    gap:20px;
+    gap:14px;
 }
 
 .big-button{
-    width:320px;
-    padding:24px;
+    width:260px;
+    padding:18px;
     border:none;
-    border-radius:20px;
+    border-radius:16px;
     background:#007AFF;
     color:white;
-    font-size:28px;
-    font-weight:bold;
+    font-size:24px;
+    font-weight:500;
 }
 
 .card{
     background:white;
-    border-radius:20px;
-    padding:20px;
-    margin-bottom:20px;
-    box-shadow:0 2px 8px rgba(0,0,0,0.1);
+    border-radius:16px;
+    padding:16px;
+    margin-bottom:12px;
+    box-shadow:0 2px 6px rgba(0,0,0,0.08);
 }
 
 input, select, button{
-    font-size:20px;
-    padding:14px;
-    border-radius:14px;
+    font-size:16px;
+    padding:10px;
+    border-radius:10px;
     border:1px solid #ccc;
 }
 
@@ -67,75 +69,99 @@ button{
     background:#007AFF;
     color:white;
     border:none;
+    font-weight:500;
 }
 
 .top-bar{
     display:flex;
     justify-content:space-between;
     align-items:center;
-    margin-bottom:10px;
+    margin-bottom:8px;
 }
 
 .timer{
     position:fixed;
-    top:15px;
-    left:15px;
+    top:8px;
+    left:8px;
     background:black;
     color:white;
-    padding:12px 20px;
-    border-radius:15px;
-    font-size:22px;
+    padding:8px 14px;
+    border-radius:10px;
+    font-size:18px;
     z-index:1000;
 }
 
 .problem-grid{
     display:grid;
     grid-template-columns:1fr 1fr;
-    gap:15px;
+    gap:8px;
 }
 
 .problem-box{
     background:white;
-    border-radius:20px;
-    padding:10px;
-    box-shadow:0 2px 8px rgba(0,0,0,0.1);
+    border-radius:14px;
+    padding:6px;
+    box-shadow:0 1px 5px rgba(0,0,0,0.08);
 }
 
 .problem{
-    font-size:32px;
     text-align:center;
-    margin-bottom:10px;
-    font-weight:bold;
+    margin-bottom:4px;
+    font-weight:500;
+}
+
+.vertical-problem{
+    display:inline-block;
+    text-align:right;
+    font-size:22px;
+    line-height:1.2;
+    font-family:monospace;
+}
+
+.vertical-line{
+    border-top:2px solid black;
+    margin-top:2px;
+    padding-top:2px;
+}
+
+.horizontal-problem{
+    font-size:22px;
 }
 
 canvas{
     width:100%;
-    height:180px;
+    height:120px;
     background:white;
-    border:2px solid #ddd;
-    border-radius:10px;
-    touch-action:none;
-}
-
-.submission{
-    border:1px solid #ddd;
-    border-radius:15px;
-    padding:15px;
-    margin-top:15px;
-    background:white;
-}
-
-.submission img{
-    width:100%;
-    max-width:400px;
     border:1px solid #ccc;
-    margin-top:10px;
+    border-radius:8px;
+    touch-action:none;
+    display:block;
+}
+
+.submission-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+}
+
+.submission-box{
+    background:white;
+    border-radius:14px;
+    padding:6px;
+    box-shadow:0 1px 5px rgba(0,0,0,0.08);
+}
+
+.submission-box img{
+    width:100%;
+    border:1px solid #ccc;
+    border-radius:8px;
+    margin-top:4px;
 }
 
 .ox-buttons{
     display:flex;
-    gap:10px;
-    margin-top:10px;
+    gap:6px;
+    margin-top:4px;
 }
 
 .correct{
@@ -148,9 +174,15 @@ canvas{
 
 .retry-box{
     background:#fff3cd;
-    border-radius:15px;
-    padding:15px;
+    border-radius:12px;
+    padding:10px;
     margin-top:10px;
+    font-size:15px;
+}
+
+.teacher-info{
+    margin-bottom:8px;
+    font-size:15px;
 }
 
 </style>
@@ -162,38 +194,48 @@ canvas{
 00:00
 </div>
 
-<!-- 시작 화면 -->
+<!-- 시작 -->
 <div id="startScreen" class="screen center">
 
-    <h1>수학 연산 학습 앱</h1>
+    <h1 style="font-size:32px;font-weight:500;">
+        수학 연산 앱
+    </h1>
 
-    <button class="big-button" onclick="showStudentSetup()">
+    <button class="big-button"
+    onclick="showStudentSetup()">
         학생용
     </button>
 
-    <button class="big-button" onclick="showTeacherScreen()">
+    <button class="big-button"
+    onclick="showTeacherScreen()">
         교사용
     </button>
 
 </div>
 
 
-<!-- 학생 설정 화면 -->
-<div id="studentSetup" class="screen hidden">
+<!-- 학생 설정 -->
+<div id="studentSetup"
+class="screen hidden">
 
     <div class="card">
 
-        <h2>학생 설정</h2>
+        <h2 style="font-weight:500;">
+            문제 설정
+        </h2>
 
         <br>
 
-        <input id="studentName" placeholder="학생 이름">
-
-        <br><br>
-
         <select id="operationType">
-            <option value="add">덧셈</option>
-            <option value="sub">뺄셈</option>
+
+            <option value="add">
+                덧셈
+            </option>
+
+            <option value="sub">
+                뺄셈
+            </option>
+
         </select>
 
         <br><br>
@@ -229,8 +271,15 @@ canvas{
         <br><br>
 
         <select id="layoutType">
-            <option value="vertical">세로셈</option>
-            <option value="horizontal">가로셈</option>
+
+            <option value="vertical">
+                세로셈
+            </option>
+
+            <option value="horizontal">
+                가로셈
+            </option>
+
         </select>
 
         <br><br>
@@ -244,18 +293,24 @@ canvas{
 </div>
 
 
-<!-- 학생 문제 화면 -->
-<div id="studentScreen" class="screen hidden">
+<!-- 학생 화면 -->
+<div id="studentScreen"
+class="screen hidden">
 
     <div class="top-bar">
-        <h2 id="studentTitle"></h2>
+
+        <h2 style="font-size:20px;font-weight:500;">
+            문제 풀기
+        </h2>
 
         <button onclick="submitWorksheet()">
-            제출하기
+            제출
         </button>
+
     </div>
 
-    <div id="problemGrid" class="problem-grid"></div>
+    <div id="problemGrid"
+    class="problem-grid"></div>
 
     <div id="retryArea"></div>
 
@@ -263,11 +318,14 @@ canvas{
 
 
 <!-- 교사 화면 -->
-<div id="teacherScreen" class="screen hidden">
+<div id="teacherScreen"
+class="screen hidden">
 
     <div class="top-bar">
 
-        <h1>교사 채점 화면</h1>
+        <h2 style="font-size:20px;font-weight:500;">
+            교사 채점
+        </h2>
 
         <button onclick="goHome()">
             홈
@@ -299,27 +357,28 @@ from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 // Firebase
 const firebaseConfig = {
 
-    apiKey: "AIzaSyByzHhGCTA2yE89tYCeOkhJQ1PiyPJ9Csk",
+    apiKey:"AIzaSyByzHhGCTA2yE89tYCeOkhJQ1PiyPJ9Csk",
 
-    authDomain: "math-98dc8.firebaseapp.com",
+    authDomain:"math-98dc8.firebaseapp.com",
 
     databaseURL:
     "https://math-98dc8-default-rtdb.firebaseio.com",
 
-    projectId: "math-98dc8",
+    projectId:"math-98dc8",
 
     storageBucket:
     "math-98dc8.firebasestorage.app",
 
-    messagingSenderId: "998893080786",
+    messagingSenderId:"998893080786",
 
     appId:
     "1:998893080786:web:fc2ce7af37e3bd0cd85d0b",
 
-    measurementId: "G-TC28EDFTWR"
+    measurementId:"G-TC28EDFTWR"
 };
 
 const app = initializeApp(firebaseConfig);
+
 const db = getDatabase(app);
 
 
@@ -344,7 +403,15 @@ let problems = [];
 let canvases = [];
 
 
-// 시작화면
+// 화면전환
+function hideAll(){
+
+    startScreen.classList.add("hidden");
+    studentSetup.classList.add("hidden");
+    studentScreen.classList.add("hidden");
+    teacherScreen.classList.add("hidden");
+}
+
 window.showStudentSetup = function(){
 
     hideAll();
@@ -366,14 +433,6 @@ window.goHome = function(){
     hideAll();
 
     startScreen.classList.remove("hidden");
-}
-
-function hideAll(){
-
-    startScreen.classList.add("hidden");
-    studentSetup.classList.add("hidden");
-    studentScreen.classList.add("hidden");
-    teacherScreen.classList.add("hidden");
 }
 
 
@@ -414,13 +473,13 @@ function startTimer(){
         String(sec%60).padStart(2,"0");
 
         document.getElementById("timer")
-            .innerText = `${min}:${s}`;
+        .innerText = `${min}:${s}`;
 
     },1000);
 }
 
 
-// 문제 생성
+// 숫자 생성
 function randomDigits(d){
 
     if(d===1)
@@ -433,6 +492,7 @@ function randomDigits(d){
 }
 
 
+// 문제 생성
 function generateWorksheet(){
 
     problems = [];
@@ -469,7 +529,6 @@ function generateWorksheet(){
             if(op==="add"){
 
                 answer = a+b;
-
                 break;
 
             }else{
@@ -477,7 +536,6 @@ function generateWorksheet(){
                 if(a>=b){
 
                     answer = a-b;
-
                     break;
                 }
             }
@@ -492,31 +550,49 @@ function generateWorksheet(){
 
         div.className = "problem-box";
 
-        let text="";
+        let problemHTML = "";
 
         if(layout==="vertical"){
 
-            text =
+            const top =
+            String(a).padStart(3," ");
+
+            const bottom =
+            String(b).padStart(3," ");
+
+            problemHTML =
             `
-            <div style="line-height:1.5">
-            ${a}<br>
-            ${op==="add"?"+":"-"} ${b}<br>
-            ㅡㅡㅡㅡ
+            <div class="vertical-problem">
+
+                <div>${top}</div>
+
+                <div>
+                ${op==="add"?"+":"-"}
+                ${bottom}
+                </div>
+
+                <div class="vertical-line"></div>
+
             </div>
             `;
 
         }else{
 
-            text =
-            `${a}
+            problemHTML =
+            `
+            <div class="horizontal-problem">
+            ${a}
             ${op==="add"?"+":"-"}
-            ${b} =`;
+            ${b}
+            =
+            </div>
+            `;
         }
 
         div.innerHTML =
         `
         <div class="problem">
-            ${text}
+            ${problemHTML}
         </div>
 
         <canvas id="canvas${i}">
@@ -542,9 +618,9 @@ function setupCanvas(id){
     canvas.width =
     canvas.offsetWidth;
 
-    canvas.height = 180;
+    canvas.height = 120;
 
-    ctx.lineWidth = 5;
+    ctx.lineWidth = 4;
     ctx.lineCap = "round";
 
     let drawing = false;
@@ -558,25 +634,27 @@ function setupCanvas(id){
 
             return {
 
-                x:e.touches[0].clientX-rect.left,
+                x:e.touches[0].clientX
+                - rect.left,
 
-                y:e.touches[0].clientY-rect.top
+                y:e.touches[0].clientY
+                - rect.top
             };
         }
 
         return {
 
-            x:e.clientX-rect.left,
+            x:e.clientX - rect.left,
 
-            y:e.clientY-rect.top
+            y:e.clientY - rect.top
         };
     }
 
     canvas.addEventListener("mousedown",(e)=>{
 
-        drawing=true;
+        drawing = true;
 
-        const p=pos(e);
+        const p = pos(e);
 
         ctx.beginPath();
 
@@ -587,7 +665,7 @@ function setupCanvas(id){
 
         if(!drawing) return;
 
-        const p=pos(e);
+        const p = pos(e);
 
         ctx.lineTo(p.x,p.y);
 
@@ -640,9 +718,6 @@ window.submitWorksheet = async function(){
     const sec =
     Math.floor((Date.now()-startTime)/1000);
 
-    const student =
-    document.getElementById("studentName").value;
-
     const images =
     canvases.map(c=>c.toDataURL());
 
@@ -651,7 +726,6 @@ window.submitWorksheet = async function(){
 
     await set(submitRef,{
 
-        student,
         time:sec,
         problems,
         images,
@@ -659,7 +733,7 @@ window.submitWorksheet = async function(){
         results:[]
     });
 
-    alert("제출 완료!");
+    alert("제출 완료");
 }
 
 
@@ -686,34 +760,34 @@ function loadSubmissions(){
         .reverse()
         .forEach(([key,item])=>{
 
-            const div =
+            const wrap =
             document.createElement("div");
 
-            div.className = "submission";
+            wrap.className = "card";
 
             let html =
             `
-            <h2>${item.student}</h2>
-
-            <p>
+            <div class="teacher-info">
             푼 시간:
             ${item.time}초
-            </p>
+            </div>
+
+            <div class="submission-grid">
             `;
 
             item.problems.forEach((p,index)=>{
 
                 html +=
                 `
-                <div style="margin-top:20px">
+                <div class="submission-box">
 
-                    <p>
+                    <div class="problem">
+
                     ${p.a}
                     ${p.op==="add"?"+":"-"}
                     ${p.b}
-                    =
-                    ${p.answer}
-                    </p>
+
+                    </div>
 
                     <img src="${item.images[index]}">
 
@@ -721,22 +795,28 @@ function loadSubmissions(){
 
                         <button
                         class="correct"
+
                         onclick="gradeSubmission(
                         '${key}',
                         ${index},
                         true
                         )">
+
                         O
+
                         </button>
 
                         <button
                         class="wrong"
+
                         onclick="gradeSubmission(
                         '${key}',
                         ${index},
                         false
                         )">
+
                         X
+
                         </button>
 
                     </div>
@@ -745,9 +825,11 @@ function loadSubmissions(){
                 `;
             });
 
-            div.innerHTML = html;
+            html += "</div>";
 
-            list.appendChild(div);
+            wrap.innerHTML = html;
+
+            list.appendChild(wrap);
         });
     });
 }
@@ -757,10 +839,10 @@ function loadSubmissions(){
 window.gradeSubmission =
 async function(key,index,result){
 
-    const snapRef =
+    const target =
     ref(db,`submissions/${key}`);
 
-    onValue(snapRef,async(snapshot)=>{
+    onValue(target,async(snapshot)=>{
 
         const data = snapshot.val();
 
@@ -769,7 +851,7 @@ async function(key,index,result){
 
         results[index] = result;
 
-        await update(snapRef,{
+        await update(target,{
 
             checked:true,
             results
@@ -781,9 +863,6 @@ async function(key,index,result){
 
 // 오답 다시하기
 function listenRetry(){
-
-    const student =
-    document.getElementById("studentName").value;
 
     onValue(ref(db,"submissions"),(snapshot)=>{
 
@@ -798,11 +877,7 @@ function listenRetry(){
 
         Object.values(data).forEach(item=>{
 
-            if(item.student !== student)
-                return;
-
-            if(!item.checked)
-                return;
+            if(!item.checked) return;
 
             const wrongs = [];
 
@@ -810,7 +885,9 @@ function listenRetry(){
 
                 if(r===false){
 
-                    wrongs.push(item.problems[index]);
+                    wrongs.push(
+                        item.problems[index]
+                    );
                 }
             });
 
@@ -819,22 +896,23 @@ function listenRetry(){
                 const div =
                 document.createElement("div");
 
-                div.className="retry-box";
+                div.className = "retry-box";
 
                 let html =
-                "<h3>오답 다시하기</h3>";
+                "<b>오답 다시하기</b>";
 
                 wrongs.forEach(p=>{
 
                     html +=
                     `
-                    <p style="margin-top:10px">
+                    <div style="margin-top:4px;">
+
                     ${p.a}
                     ${p.op==="add"?"+":"-"}
                     ${p.b}
-                    =
-                    ?
-                    </p>
+                    = ?
+
+                    </div>
                     `;
                 });
 
