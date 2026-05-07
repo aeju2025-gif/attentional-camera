@@ -68,6 +68,12 @@ button{
     color:white;
     border:none;
     font-weight:400;
+
+    user-select:none;
+    -webkit-user-select:none;
+    -webkit-touch-callout:none;
+
+    touch-action:manipulation;
 }
 
 .top-bar{
@@ -75,6 +81,7 @@ button{
     justify-content:space-between;
     align-items:center;
     margin-bottom:8px;
+    gap:8px;
 }
 
 .timer{
@@ -136,7 +143,6 @@ canvas{
     background:white;
     display:block;
 
-    /* 팜리젝션 */
     touch-action:none;
     -webkit-user-select:none;
     user-select:none;
@@ -144,9 +150,10 @@ canvas{
 
 .erase-btn{
     background:#666;
-    font-size:13px;
-    padding:5px 10px;
+    font-size:12px;
+    padding:4px 8px;
     border-radius:8px;
+    min-width:auto;
 }
 
 .result-mark{
@@ -309,8 +316,20 @@ class="screen hidden">
 
 <div class="top-bar">
 
+<div style="display:flex;gap:8px;">
+
+<button onclick="showProblemTab()">
+문제풀기
+</button>
+
+<button onclick="showRetryTab()">
+오답노트
+</button>
+
+</div>
+
 <h2 id="sheetInfo"
-style="font-weight:400;">
+style="font-weight:400;font-size:18px;">
 </h2>
 
 <button onclick="submitWorksheet()">
@@ -319,15 +338,26 @@ style="font-weight:400;">
 
 </div>
 
+<!-- 문제 -->
+<div id="problemTab">
+
 <div id="problemGrid"
 class="problem-grid"></div>
+
+</div>
+
+<!-- 오답노트 -->
+<div id="retryTab"
+class="hidden">
 
 <div id="retryArea"></div>
 
 </div>
 
+</div>
 
-<!-- 교사 화면 -->
+
+<!-- 교사 -->
 <div id="teacherScreen"
 class="screen hidden">
 
@@ -370,7 +400,6 @@ class="problem-grid"></div>
 </div>
 
 
-
 <script type="module">
 
 import { initializeApp }
@@ -411,7 +440,6 @@ measurementId:"G-TC28EDFTWR"
 };
 
 const app = initializeApp(firebaseConfig);
-
 const db = getDatabase(app);
 
 
@@ -487,6 +515,30 @@ teacherScreen.classList.remove("hidden");
 }
 
 
+// 탭
+window.showProblemTab = function(){
+
+document.getElementById(
+"problemTab"
+).classList.remove("hidden");
+
+document.getElementById(
+"retryTab"
+).classList.add("hidden");
+}
+
+window.showRetryTab = function(){
+
+document.getElementById(
+"problemTab"
+).classList.add("hidden");
+
+document.getElementById(
+"retryTab"
+).classList.remove("hidden");
+}
+
+
 // 시작
 window.startStudentMode = function(){
 
@@ -507,6 +559,8 @@ function startWorksheet(){
 hideAll();
 
 studentScreen.classList.remove("hidden");
+
+showProblemTab();
 
 document.getElementById("timer")
 .classList.remove("hidden");
@@ -551,7 +605,7 @@ document.getElementById("timer")
 }
 
 
-// 숫자 생성
+// 숫자
 function randomDigits(d){
 
 if(d===1)
@@ -653,6 +707,7 @@ html =
 
 ${a}
 ${op==="add"?"+":"-"}
+
 ${b}
 =
 
@@ -663,9 +718,7 @@ ${b}
 div.innerHTML =
 `
 <div class="problem">
-
 ${html}
-
 </div>
 
 <div style="
@@ -676,7 +729,7 @@ margin-bottom:4px;
 
 <button
 class="erase-btn"
-onclick="clearOneCanvas(${i})">
+data-index="${i}">
 
 지우기
 
@@ -692,13 +745,25 @@ id="canvas${i}">
 grid.appendChild(div);
 
 setupCanvas(`canvas${i}`);
+
+const eraseBtn =
+div.querySelector(".erase-btn");
+
+eraseBtn.addEventListener(
+"pointerdown",
+(e)=>{
+
+e.preventDefault();
+e.stopPropagation();
+
+clearOneCanvas(i);
+});
 }
 }
 
 
-// 개별 지우기
-window.clearOneCanvas =
-function(index){
+// 지우기
+function clearOneCanvas(index){
 
 const canvas =
 canvases[index];
@@ -732,15 +797,11 @@ canvas.offsetWidth;
 canvas.height = 135;
 
 ctx.lineWidth = 3;
-
 ctx.lineCap = "round";
-
 ctx.strokeStyle = "black";
 
 let drawing = false;
 
-
-// 위치
 function pos(e){
 
 const rect =
@@ -754,8 +815,13 @@ y:e.clientY - rect.top
 };
 }
 
+canvas.addEventListener(
+"contextmenu",
+(e)=>{
+e.preventDefault();
+}
+);
 
-// 펜 입력
 canvas.addEventListener(
 "pointerdown",
 (e)=>{
@@ -1125,7 +1191,7 @@ results
 };
 
 
-// 오답확인
+// 오답노트
 function listenRetry(){
 
 const retryArea =
@@ -1148,7 +1214,6 @@ retryProblems = [];
 if(!data) return;
 
 
-// 오답 모으기
 Object.values(data)
 .forEach(item=>{
 
@@ -1168,59 +1233,107 @@ item.problems[index]
 });
 
 
-// 오답없음
-if(retryProblems.length===0)
+if(retryProblems.length===0){
+
+retryArea.innerHTML =
+`
+<div class="card">
+
+오답 문제가 없습니다
+
+</div>
+`;
+
 return;
+}
 
 
-// 화면
-const div =
+const wrap =
 document.createElement("div");
 
-div.className =
-"retry-box";
-
-div.innerHTML =
+let html =
 `
+<div class="card">
+
 <h3 style="
 font-weight:400;
-margin-bottom:10px;
+margin-bottom:12px;
 ">
 
-오답 다시하기
+오답노트
 (${retryProblems.length}문제)
 
 </h3>
 
-<button
-onclick="
-startRetryMode()
+<div class="
+problem-grid
 ">
-
-오답 다시 풀기 시작
-
-</button>
 `;
 
-retryArea.appendChild(div);
+retryProblems.forEach(
+(p,index)=>{
+
+html +=
+`
+<div class="
+problem-box
+">
+
+<div class="
+horizontal-problem
+">
+
+${p.a}
+${p.op==="add"
+?"+":"-"}
+
+${p.b}
+=
+
+</div>
+
+<div style="
+margin-top:8px;
+">
+
+<button
+onclick="
+retryOneProblem(
+${index}
+)
+">
+
+다시 풀기
+
+</button>
+
+</div>
+
+</div>
+`;
+});
+
+html += `
+</div>
+</div>
+`;
+
+wrap.innerHTML = html;
+
+retryArea.appendChild(wrap);
 
 });
 }
 
 
-// 오답모드
-window.startRetryMode =
-function(){
+// 오답 다시풀기
+window.retryOneProblem =
+function(index){
 
-hideAll();
+const p =
+retryProblems[index];
 
-studentScreen
-.classList.remove("hidden");
-
-document.getElementById(
-"sheetInfo"
-).innerText =
-"오답 다시 풀기";
+showProblemTab();
 
 const grid =
 document.getElementById(
@@ -1229,13 +1342,8 @@ document.getElementById(
 
 grid.innerHTML = "";
 
-problems = [];
+problems = [p];
 canvases = [];
-
-retryProblems.forEach(
-(p,index)=>{
-
-problems.push(p);
 
 const div =
 document.createElement("div");
@@ -1265,13 +1373,7 @@ margin-bottom:4px;
 ">
 
 <button
-class="erase-btn"
-
-onclick="
-clearOneCanvas(
-${index}
-)
-">
+class="erase-btn">
 
 지우기
 
@@ -1280,20 +1382,44 @@ ${index}
 </div>
 
 <canvas
-id="retryCanvas${index}">
+id="retryCanvas0">
 </canvas>
+
+<button
+style="
+margin-top:8px;
+width:100%;
+"
+
+onclick="
+submitRetry()
+">
+
+오답 제출
+
+</button>
 `;
 
 grid.appendChild(div);
 
-setupCanvas(
-`retryCanvas${index}`
-);
+setupCanvas("retryCanvas0");
+
+const eraseBtn =
+div.querySelector(".erase-btn");
+
+eraseBtn.addEventListener(
+"pointerdown",
+(e)=>{
+
+e.preventDefault();
+e.stopPropagation();
+
+clearOneCanvas(0);
 });
 }
 
 
-// 오답제출
+// 오답 제출
 window.submitRetry =
 async function(){
 
