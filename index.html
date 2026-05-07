@@ -5,7 +5,7 @@
 <meta name="viewport"
 content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
 
-<title>수학 연산 학습 앱</title>
+<title>수학 연산 앱</title>
 
 <style>
 
@@ -53,7 +53,7 @@ body{
     background:#007AFF;
     color:white;
     font-size:24px;
-    font-weight:500;
+    font-weight:400;
 }
 
 input,select,button{
@@ -67,7 +67,7 @@ button{
     background:#007AFF;
     color:white;
     border:none;
-    font-weight:500;
+    font-weight:400;
 }
 
 .top-bar{
@@ -134,8 +134,19 @@ canvas{
     border:1px solid #ccc;
     border-radius:10px;
     background:white;
-    touch-action:none;
     display:block;
+
+    /* 팜리젝션 */
+    touch-action:none;
+    -webkit-user-select:none;
+    user-select:none;
+}
+
+.erase-btn{
+    background:#666;
+    font-size:13px;
+    padding:5px 10px;
+    border-radius:8px;
 }
 
 .result-mark{
@@ -178,23 +189,23 @@ canvas{
 00:00
 </div>
 
-<!-- 시작 화면 -->
+<!-- 시작 -->
 <div id="startScreen"
 class="screen center">
 
-    <h1 style="font-weight:400;">
-        수학 연산 앱
-    </h1>
+<h1 style="font-weight:400;">
+수학 연산 앱
+</h1>
 
-    <button class="big-button"
-    onclick="showStudentSetup()">
-        학생용
-    </button>
+<button class="big-button"
+onclick="showStudentSetup()">
+학생용
+</button>
 
-    <button class="big-button"
-    onclick="showTeacherScreen()">
-        교사용
-    </button>
+<button class="big-button"
+onclick="showTeacherScreen()">
+교사용
+</button>
 
 </div>
 
@@ -203,91 +214,91 @@ class="screen center">
 <div id="studentSetup"
 class="screen hidden">
 
-    <div class="card">
+<div class="card">
 
-        <h2 style="font-weight:400;">
-            문제 설정
-        </h2>
+<h2 style="font-weight:400;">
+문제 설정
+</h2>
 
-        <br>
+<br>
 
-        <select id="operationType">
+<select id="operationType">
 
-            <option value="add">
-                덧셈
-            </option>
+<option value="add">
+덧셈
+</option>
 
-            <option value="sub">
-                뺄셈
-            </option>
+<option value="sub">
+뺄셈
+</option>
 
-        </select>
+</select>
 
-        <br><br>
+<br><br>
 
-        <select id="digitType">
+<select id="digitType">
 
-            <option value="1_1">
-                한자리 + 한자리
-            </option>
+<option value="1_1">
+한자리 + 한자리
+</option>
 
-            <option value="2_1">
-                두자리 + 한자리
-            </option>
+<option value="2_1">
+두자리 + 한자리
+</option>
 
-            <option value="2_2">
-                두자리 + 두자리
-            </option>
+<option value="2_2">
+두자리 + 두자리
+</option>
 
-            <option value="3_1">
-                세자리 + 한자리
-            </option>
+<option value="3_1">
+세자리 + 한자리
+</option>
 
-            <option value="3_2">
-                세자리 + 두자리
-            </option>
+<option value="3_2">
+세자리 + 두자리
+</option>
 
-            <option value="3_3">
-                세자리 + 세자리
-            </option>
+<option value="3_3">
+세자리 + 세자리
+</option>
 
-        </select>
+</select>
 
-        <br><br>
+<br><br>
 
-        <select id="layoutType">
+<select id="layoutType">
 
-            <option value="vertical">
-                세로셈
-            </option>
+<option value="vertical">
+세로셈
+</option>
 
-            <option value="horizontal">
-                가로셈
-            </option>
+<option value="horizontal">
+가로셈
+</option>
 
-        </select>
+</select>
 
-        <br><br>
+<br><br>
 
-        <select id="sheetCount">
+<select id="sheetCount">
 
-            <option value="5">
-                5장
-            </option>
+<option value="5">
+5장
+</option>
 
-            <option value="10">
-                10장
-            </option>
+<option value="10">
+10장
+</option>
 
-        </select>
+</select>
 
-        <br><br>
+<br><br>
 
-        <button onclick="startStudentMode()">
-            시작하기
-        </button>
+<button onclick="startStudentMode()">
+시작하기
+</button>
 
-    </div>
+</div>
 
 </div>
 
@@ -296,22 +307,22 @@ class="screen hidden">
 <div id="studentScreen"
 class="screen hidden">
 
-    <div class="top-bar">
+<div class="top-bar">
 
-        <h2 id="sheetInfo"
-        style="font-weight:400;">
-        </h2>
+<h2 id="sheetInfo"
+style="font-weight:400;">
+</h2>
 
-        <button onclick="submitWorksheet()">
-            제출
-        </button>
+<button onclick="submitWorksheet()">
+제출
+</button>
 
-    </div>
+</div>
 
-    <div id="problemGrid"
-    class="problem-grid"></div>
+<div id="problemGrid"
+class="problem-grid"></div>
 
-    <div id="retryArea"></div>
+<div id="retryArea"></div>
 
 </div>
 
@@ -320,43 +331,44 @@ class="screen hidden">
 <div id="teacherScreen"
 class="screen hidden">
 
-    <div class="top-bar">
+<div class="top-bar">
 
-        <h2 style="font-weight:400;">
-            채점 목록
-        </h2>
+<h2 style="font-weight:400;">
+채점 목록
+</h2>
 
-        <button onclick="goHome()">
-            홈
-        </button>
+<button onclick="goHome()">
+홈
+</button>
 
-    </div>
+</div>
 
-    <div id="submissionList"></div>
+<div id="submissionList"></div>
 
 </div>
 
 
-<!-- 상세 채점 -->
+<!-- 채점 -->
 <div id="gradingScreen"
 class="screen hidden">
 
-    <div class="top-bar">
+<div class="top-bar">
 
-        <h2 id="gradingTitle"
-        style="font-weight:400;">
-        </h2>
+<h2 id="gradingTitle"
+style="font-weight:400;">
+</h2>
 
-        <button onclick="backToTeacher()">
-            뒤로
-        </button>
-
-    </div>
-
-    <div id="gradingGrid"
-    class="problem-grid"></div>
+<button onclick="backToTeacher()">
+뒤로
+</button>
 
 </div>
+
+<div id="gradingGrid"
+class="problem-grid"></div>
+
+</div>
+
 
 
 <script type="module">
@@ -399,6 +411,7 @@ measurementId:"G-TC28EDFTWR"
 };
 
 const app = initializeApp(firebaseConfig);
+
 const db = getDatabase(app);
 
 
@@ -407,6 +420,7 @@ let startTime = 0;
 let timerInterval;
 let problems = [];
 let canvases = [];
+let retryProblems = [];
 
 let currentSheet = 1;
 let totalSheets = 5;
@@ -442,12 +456,14 @@ gradingScreen.classList.add("hidden");
 window.showStudentSetup = function(){
 
 hideAll();
+
 studentSetup.classList.remove("hidden");
 }
 
 window.showTeacherScreen = function(){
 
 hideAll();
+
 teacherScreen.classList.remove("hidden");
 
 loadSubmissionList();
@@ -456,17 +472,22 @@ loadSubmissionList();
 window.goHome = function(){
 
 hideAll();
+
+document.getElementById("timer")
+.classList.add("hidden");
+
 startScreen.classList.remove("hidden");
 }
 
 window.backToTeacher = function(){
 
 hideAll();
+
 teacherScreen.classList.remove("hidden");
 }
 
 
-// 학생 시작
+// 시작
 window.startStudentMode = function(){
 
 currentSheet = 1;
@@ -480,6 +501,7 @@ startWorksheet();
 };
 
 
+// 시험 시작
 function startWorksheet(){
 
 hideAll();
@@ -529,7 +551,7 @@ document.getElementById("timer")
 }
 
 
-// 숫자
+// 숫자 생성
 function randomDigits(d){
 
 if(d===1)
@@ -598,7 +620,8 @@ a,b,answer,op
 const div =
 document.createElement("div");
 
-div.className = "problem-box";
+div.className =
+"problem-box";
 
 let html = "";
 
@@ -627,10 +650,12 @@ ${String(b).padStart(3," ")}
 html =
 `
 <div class="horizontal-problem">
+
 ${a}
 ${op==="add"?"+":"-"}
 ${b}
 =
+
 </div>
 `;
 }
@@ -638,10 +663,29 @@ ${b}
 div.innerHTML =
 `
 <div class="problem">
+
 ${html}
+
 </div>
 
-<canvas id="canvas${i}">
+<div style="
+display:flex;
+justify-content:flex-end;
+margin-bottom:4px;
+">
+
+<button
+class="erase-btn"
+onclick="clearOneCanvas(${i})">
+
+지우기
+
+</button>
+
+</div>
+
+<canvas
+id="canvas${i}">
 </canvas>
 `;
 
@@ -649,6 +693,27 @@ grid.appendChild(div);
 
 setupCanvas(`canvas${i}`);
 }
+}
+
+
+// 개별 지우기
+window.clearOneCanvas =
+function(index){
+
+const canvas =
+canvases[index];
+
+if(!canvas) return;
+
+const ctx =
+canvas.getContext("2d");
+
+ctx.clearRect(
+0,
+0,
+canvas.width,
+canvas.height
+);
 }
 
 
@@ -667,26 +732,19 @@ canvas.offsetWidth;
 canvas.height = 135;
 
 ctx.lineWidth = 3;
+
 ctx.lineCap = "round";
+
+ctx.strokeStyle = "black";
 
 let drawing = false;
 
+
+// 위치
 function pos(e){
 
 const rect =
 canvas.getBoundingClientRect();
-
-if(e.touches){
-
-return {
-
-x:e.touches[0].clientX
-- rect.left,
-
-y:e.touches[0].clientY
-- rect.top
-};
-}
 
 return {
 
@@ -696,68 +754,68 @@ y:e.clientY - rect.top
 };
 }
 
-canvas.addEventListener("mousedown",(e)=>{
 
-drawing=true;
+// 펜 입력
+canvas.addEventListener(
+"pointerdown",
+(e)=>{
 
-const p=pos(e);
+if(
+e.pointerType !== "pen" &&
+e.pointerType !== "mouse"
+){
+return;
+}
+
+drawing = true;
+
+const p = pos(e);
 
 ctx.beginPath();
 
 ctx.moveTo(p.x,p.y);
-});
+}
+);
 
-canvas.addEventListener("mousemove",(e)=>{
+canvas.addEventListener(
+"pointermove",
+(e)=>{
 
 if(!drawing) return;
-
-const p=pos(e);
-
-ctx.lineTo(p.x,p.y);
-
-ctx.stroke();
-});
-
-canvas.addEventListener("mouseup",()=>{
-
-drawing=false;
-});
-
-canvas.addEventListener("touchstart",(e)=>{
-
-drawing=true;
-
-const p=pos(e);
-
-ctx.beginPath();
-
-ctx.moveTo(p.x,p.y);
-});
-
-canvas.addEventListener("touchmove",(e)=>{
 
 e.preventDefault();
 
-if(!drawing) return;
-
-const p=pos(e);
+const p = pos(e);
 
 ctx.lineTo(p.x,p.y);
 
 ctx.stroke();
-});
+}
+);
 
-canvas.addEventListener("touchend",()=>{
+canvas.addEventListener(
+"pointerup",
+()=>{
 
-drawing=false;
-});
+drawing = false;
+}
+);
+
+canvas.addEventListener(
+"pointerleave",
+()=>{
+
+drawing = false;
+}
+);
 
 canvases.push(canvas);
 }
 
 
 // 제출
-window.submitWorksheet = async function(){
+window.submitWorksheet =
+async function(){
 
 clearInterval(timerInterval);
 
@@ -765,9 +823,12 @@ const sec =
 Math.floor((Date.now()-startTime)/1000);
 
 const images =
-canvases.map(c=>c.toDataURL());
+canvases.map(
+c=>c.toDataURL()
+);
 
-const now = new Date();
+const now =
+new Date();
 
 const title =
 `${now.getFullYear()}-${
@@ -813,22 +874,27 @@ goHome();
 };
 
 
-// 목록
+// 제출목록
 function loadSubmissionList(){
 
 const list =
 document.getElementById("submissionList");
 
-onValue(ref(db,"submissions"),
+onValue(
+ref(db,"submissions"),
+
 (snapshot)=>{
 
-const data = snapshot.val();
+const data =
+snapshot.val();
 
 list.innerHTML = "";
 
 if(!data){
 
-list.innerHTML="제출 없음";
+list.innerHTML =
+"제출 없음";
+
 return;
 }
 
@@ -839,12 +905,15 @@ Object.entries(data)
 const div =
 document.createElement("div");
 
-div.className = "test-item";
+div.className =
+"test-item";
 
 div.innerHTML =
 `
 <div>
+
 ${item.title}
+
 </div>
 
 <div style="
@@ -860,9 +929,11 @@ ${item.time}초
 <button
 style="margin-top:10px"
 
-onclick="openGrading(
+onclick="
+openGrading(
 '${key}'
-)">
+)
+">
 
 채점하기
 
@@ -875,7 +946,7 @@ list.appendChild(div);
 }
 
 
-// 채점 열기
+// 채점열기
 window.openGrading =
 function(key){
 
@@ -885,11 +956,12 @@ gradingScreen
 .classList.remove("hidden");
 
 const grid =
-document.getElementById("gradingGrid");
+document.getElementById(
+"gradingGrid"
+);
 
-grid.innerHTML = "";
-
-onValue(ref(db,
+onValue(
+ref(db,
 `submissions/${key}`),
 
 (snapshot)=>{
@@ -947,17 +1019,15 @@ div.innerHTML =
 `
 ${mark}
 
-<div class="problem">
-
 <div class="
 horizontal-problem
 ">
 
 ${p.a}
-${p.op==="add"?"+":"-"}
-${p.b}
+${p.op==="add"
+?"+":"-"}
 
-</div>
+${p.b}
 
 </div>
 
@@ -965,6 +1035,7 @@ ${p.b}
 src="${item.images[index]}"
 style="
 width:100%;
+margin-top:6px;
 border-radius:10px;
 border:1px solid #ccc;
 ">
@@ -1023,9 +1094,13 @@ result
 ){
 
 const target =
-ref(db,`submissions/${key}`);
+ref(db,
+`submissions/${key}`
+);
 
-onValue(target,
+onValue(
+target,
+
 async(snapshot)=>{
 
 const data =
@@ -1043,17 +1118,23 @@ checked:true,
 results
 });
 
-},{onlyOnce:true});
+},
+
+{onlyOnce:true}
+);
 };
 
 
-// 오답
+// 오답확인
 function listenRetry(){
 
 const retryArea =
-document.getElementById("retryArea");
+document.getElementById(
+"retryArea"
+);
 
-onValue(ref(db,"submissions"),
+onValue(
+ref(db,"submissions"),
 
 (snapshot)=>{
 
@@ -1062,99 +1143,84 @@ snapshot.val();
 
 retryArea.innerHTML = "";
 
+retryProblems = [];
+
 if(!data) return;
 
+
+// 오답 모으기
 Object.values(data)
 .forEach(item=>{
 
 if(!item.checked)
 return;
 
-const wrongs = [];
-
-item.results
-.forEach((r,index)=>{
+item.results?.forEach(
+(r,index)=>{
 
 if(r===false){
 
-wrongs.push({
-
-problem:
-item.problems[index],
-
-image:
-item.images[index]
-});
+retryProblems.push(
+item.problems[index]
+);
 }
 });
+});
 
-if(wrongs.length>0){
 
+// 오답없음
+if(retryProblems.length===0)
+return;
+
+
+// 화면
 const div =
 document.createElement("div");
 
 div.className =
 "retry-box";
 
-let html =
+div.innerHTML =
 `
 <h3 style="
 font-weight:400;
-margin-bottom:8px;
+margin-bottom:10px;
 ">
+
 오답 다시하기
+(${retryProblems.length}문제)
+
 </h3>
-`;
-
-wrongs.forEach((w,i)=>{
-
-html +=
-`
-<div style="
-margin-top:10px;
-">
-
-${w.problem.a}
-${w.problem.op==="add"
-?"+":"-"}
-
-${w.problem.b}
-= ?
 
 <button
 onclick="
-retryWrong(
-${w.problem.a},
-${w.problem.b},
-'${w.problem.op}'
-)
+startRetryMode()
 ">
 
-다시 풀기
+오답 다시 풀기 시작
 
 </button>
-
-</div>
 `;
-});
-
-div.innerHTML = html;
 
 retryArea.appendChild(div);
-}
-});
+
 });
 }
 
 
-// 오답 다시풀기
-window.retryWrong =
-function(a,b,op){
+// 오답모드
+window.startRetryMode =
+function(){
 
 hideAll();
 
 studentScreen
 .classList.remove("hidden");
+
+document.getElementById(
+"sheetInfo"
+).innerText =
+"오답 다시 풀기";
 
 const grid =
 document.getElementById(
@@ -1163,14 +1229,13 @@ document.getElementById(
 
 grid.innerHTML = "";
 
-problems = [{
-a,b,
-answer:
-op==="add"
-?a+b
-:a-b,
-op
-}];
+problems = [];
+canvases = [];
+
+retryProblems.forEach(
+(p,index)=>{
+
+problems.push(p);
 
 const div =
 document.createElement("div");
@@ -1184,42 +1249,58 @@ div.innerHTML =
 horizontal-problem
 ">
 
-${a}
-${op==="add"?"+":"-"}
-${b}
+${p.a}
+${p.op==="add"
+?"+":"-"}
+
+${p.b}
 =
 
 </div>
 
-<canvas id="retryCanvas">
-</canvas>
-
-<button
-style="
-margin-top:8px;
-"
-
-onclick="
-submitRetry()
+<div style="
+display:flex;
+justify-content:flex-end;
+margin-bottom:4px;
 ">
 
-오답 제출
+<button
+class="erase-btn"
+
+onclick="
+clearOneCanvas(
+${index}
+)
+">
+
+지우기
 
 </button>
+
+</div>
+
+<canvas
+id="retryCanvas${index}">
+</canvas>
 `;
 
 grid.appendChild(div);
 
-setupCanvas("retryCanvas");
-};
+setupCanvas(
+`retryCanvas${index}`
+);
+});
+}
 
 
-// 오답 제출
+// 오답제출
 window.submitRetry =
 async function(){
 
 const images =
-canvases.map(c=>c.toDataURL());
+canvases.map(
+c=>c.toDataURL()
+);
 
 const submitRef =
 push(ref(db,"submissions"));
@@ -1240,7 +1321,9 @@ checked:false
 });
 
 alert("오답 제출 완료");
-};
+
+goHome();
+}
 
 </script>
 
