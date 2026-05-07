@@ -1,12 +1,11 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8">
 <meta name="viewport"
-content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
 
-<title>수학 연산 앱</title>
+<title>수학 연산 학습 앱</title>
 
 <style>
 
@@ -28,7 +27,7 @@ body{
 
 .screen{
     min-height:100vh;
-    padding:8px;
+    padding:10px;
 }
 
 .center{
@@ -39,29 +38,28 @@ body{
     gap:14px;
 }
 
+.card{
+    background:white;
+    border-radius:18px;
+    padding:16px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.08);
+}
+
 .big-button{
     width:260px;
     padding:18px;
     border:none;
-    border-radius:16px;
+    border-radius:18px;
     background:#007AFF;
     color:white;
     font-size:24px;
     font-weight:500;
 }
 
-.card{
-    background:white;
-    border-radius:16px;
-    padding:16px;
-    margin-bottom:12px;
-    box-shadow:0 2px 6px rgba(0,0,0,0.08);
-}
-
-input, select, button{
+input,select,button{
     font-size:16px;
     padding:10px;
-    border-radius:10px;
+    border-radius:12px;
     border:1px solid #ccc;
 }
 
@@ -81,108 +79,94 @@ button{
 
 .timer{
     position:fixed;
-    top:8px;
-    left:8px;
+    top:10px;
+    left:10px;
     background:black;
     color:white;
     padding:8px 14px;
     border-radius:10px;
     font-size:18px;
-    z-index:1000;
+    z-index:999;
 }
 
 .problem-grid{
     display:grid;
     grid-template-columns:1fr 1fr;
-    gap:8px;
+    gap:10px;
 }
 
 .problem-box{
     background:white;
-    border-radius:14px;
-    padding:6px;
+    border-radius:16px;
+    padding:8px;
     box-shadow:0 1px 5px rgba(0,0,0,0.08);
+    position:relative;
 }
 
 .problem{
     text-align:center;
-    margin-bottom:4px;
-    font-weight:500;
+    margin-bottom:6px;
+    font-weight:300;
 }
 
 .vertical-problem{
     display:inline-block;
     text-align:right;
-    font-size:22px;
-    line-height:1.2;
+    font-size:28px;
+    line-height:1.15;
     font-family:monospace;
+    font-weight:300;
 }
 
 .vertical-line{
     border-top:2px solid black;
     margin-top:2px;
-    padding-top:2px;
 }
 
 .horizontal-problem{
-    font-size:22px;
+    font-size:28px;
+    font-weight:300;
 }
 
 canvas{
     width:100%;
-    height:120px;
-    background:white;
+    height:135px;
     border:1px solid #ccc;
-    border-radius:8px;
+    border-radius:10px;
+    background:white;
     touch-action:none;
     display:block;
 }
 
-.submission-grid{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:8px;
+.result-mark{
+    position:absolute;
+    top:5px;
+    right:8px;
+    font-size:28px;
+    font-weight:600;
 }
 
-.submission-box{
+.result-o{
+    color:green;
+}
+
+.result-x{
+    color:red;
+}
+
+.test-item{
     background:white;
+    padding:14px;
     border-radius:14px;
-    padding:6px;
+    margin-bottom:10px;
     box-shadow:0 1px 5px rgba(0,0,0,0.08);
-}
-
-.submission-box img{
-    width:100%;
-    border:1px solid #ccc;
-    border-radius:8px;
-    margin-top:4px;
-}
-
-.ox-buttons{
-    display:flex;
-    gap:6px;
-    margin-top:4px;
-}
-
-.correct{
-    background:green;
-}
-
-.wrong{
-    background:red;
 }
 
 .retry-box{
     background:#fff3cd;
-    border-radius:12px;
-    padding:10px;
-    margin-top:10px;
-    font-size:15px;
-}
-
-.teacher-info{
-    margin-bottom:8px;
-    font-size:15px;
+    border-radius:14px;
+    padding:12px;
+    margin-top:14px;
 }
 
 </style>
@@ -194,10 +178,11 @@ canvas{
 00:00
 </div>
 
-<!-- 시작 -->
-<div id="startScreen" class="screen center">
+<!-- 시작 화면 -->
+<div id="startScreen"
+class="screen center">
 
-    <h1 style="font-size:32px;font-weight:500;">
+    <h1 style="font-weight:400;">
         수학 연산 앱
     </h1>
 
@@ -220,7 +205,7 @@ class="screen hidden">
 
     <div class="card">
 
-        <h2 style="font-weight:500;">
+        <h2 style="font-weight:400;">
             문제 설정
         </h2>
 
@@ -284,6 +269,20 @@ class="screen hidden">
 
         <br><br>
 
+        <select id="sheetCount">
+
+            <option value="5">
+                5장
+            </option>
+
+            <option value="10">
+                10장
+            </option>
+
+        </select>
+
+        <br><br>
+
         <button onclick="startStudentMode()">
             시작하기
         </button>
@@ -299,8 +298,8 @@ class="screen hidden">
 
     <div class="top-bar">
 
-        <h2 style="font-size:20px;font-weight:500;">
-            문제 풀기
+        <h2 id="sheetInfo"
+        style="font-weight:400;">
         </h2>
 
         <button onclick="submitWorksheet()">
@@ -323,8 +322,8 @@ class="screen hidden">
 
     <div class="top-bar">
 
-        <h2 style="font-size:20px;font-weight:500;">
-            교사 채점
+        <h2 style="font-weight:400;">
+            채점 목록
         </h2>
 
         <button onclick="goHome()">
@@ -338,18 +337,40 @@ class="screen hidden">
 </div>
 
 
+<!-- 상세 채점 -->
+<div id="gradingScreen"
+class="screen hidden">
+
+    <div class="top-bar">
+
+        <h2 id="gradingTitle"
+        style="font-weight:400;">
+        </h2>
+
+        <button onclick="backToTeacher()">
+            뒤로
+        </button>
+
+    </div>
+
+    <div id="gradingGrid"
+    class="problem-grid"></div>
+
+</div>
+
+
 <script type="module">
 
 import { initializeApp }
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
 import {
-    getDatabase,
-    ref,
-    push,
-    set,
-    onValue,
-    update
+getDatabase,
+ref,
+push,
+set,
+onValue,
+update
 }
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
@@ -357,29 +378,38 @@ from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 // Firebase
 const firebaseConfig = {
 
-    apiKey:"AIzaSyByzHhGCTA2yE89tYCeOkhJQ1PiyPJ9Csk",
+apiKey:"AIzaSyByzHhGCTA2yE89tYCeOkhJQ1PiyPJ9Csk",
 
-    authDomain:"math-98dc8.firebaseapp.com",
+authDomain:"math-98dc8.firebaseapp.com",
 
-    databaseURL:
-    "https://math-98dc8-default-rtdb.firebaseio.com",
+databaseURL:
+"https://math-98dc8-default-rtdb.firebaseio.com",
 
-    projectId:"math-98dc8",
+projectId:"math-98dc8",
 
-    storageBucket:
-    "math-98dc8.firebasestorage.app",
+storageBucket:
+"math-98dc8.firebasestorage.app",
 
-    messagingSenderId:"998893080786",
+messagingSenderId:"998893080786",
 
-    appId:
-    "1:998893080786:web:fc2ce7af37e3bd0cd85d0b",
+appId:
+"1:998893080786:web:fc2ce7af37e3bd0cd85d0b",
 
-    measurementId:"G-TC28EDFTWR"
+measurementId:"G-TC28EDFTWR"
 };
 
 const app = initializeApp(firebaseConfig);
-
 const db = getDatabase(app);
+
+
+// 상태
+let startTime = 0;
+let timerInterval;
+let problems = [];
+let canvases = [];
+
+let currentSheet = 1;
+let totalSheets = 5;
 
 
 // 화면
@@ -395,534 +425,822 @@ document.getElementById("studentScreen");
 const teacherScreen =
 document.getElementById("teacherScreen");
 
-
-// 상태
-let startTime = 0;
-let timerInterval;
-let problems = [];
-let canvases = [];
+const gradingScreen =
+document.getElementById("gradingScreen");
 
 
 // 화면전환
 function hideAll(){
 
-    startScreen.classList.add("hidden");
-    studentSetup.classList.add("hidden");
-    studentScreen.classList.add("hidden");
-    teacherScreen.classList.add("hidden");
+startScreen.classList.add("hidden");
+studentSetup.classList.add("hidden");
+studentScreen.classList.add("hidden");
+teacherScreen.classList.add("hidden");
+gradingScreen.classList.add("hidden");
 }
 
 window.showStudentSetup = function(){
 
-    hideAll();
-
-    studentSetup.classList.remove("hidden");
+hideAll();
+studentSetup.classList.remove("hidden");
 }
 
 window.showTeacherScreen = function(){
 
-    hideAll();
+hideAll();
+teacherScreen.classList.remove("hidden");
 
-    teacherScreen.classList.remove("hidden");
-
-    loadSubmissions();
+loadSubmissionList();
 }
 
 window.goHome = function(){
 
-    hideAll();
+hideAll();
+startScreen.classList.remove("hidden");
+}
 
-    startScreen.classList.remove("hidden");
+window.backToTeacher = function(){
+
+hideAll();
+teacherScreen.classList.remove("hidden");
 }
 
 
 // 학생 시작
 window.startStudentMode = function(){
 
-    hideAll();
+currentSheet = 1;
 
-    studentScreen.classList.remove("hidden");
+totalSheets =
+Number(
+document.getElementById("sheetCount").value
+);
 
-    document.getElementById("timer")
-        .classList.remove("hidden");
+startWorksheet();
+};
 
-    startTime = Date.now();
 
-    startTimer();
+function startWorksheet(){
 
-    generateWorksheet();
+hideAll();
 
-    listenRetry();
+studentScreen.classList.remove("hidden");
+
+document.getElementById("timer")
+.classList.remove("hidden");
+
+document.getElementById("sheetInfo")
+.innerText =
+`${currentSheet} / ${totalSheets} 장`;
+
+startTime = Date.now();
+
+startTimer();
+
+generateWorksheet();
+
+listenRetry();
 }
 
 
 // 타이머
 function startTimer(){
 
-    clearInterval(timerInterval);
+clearInterval(timerInterval);
 
-    timerInterval = setInterval(()=>{
+timerInterval = setInterval(()=>{
 
-        const sec =
-        Math.floor((Date.now()-startTime)/1000);
+const sec =
+Math.floor((Date.now()-startTime)/1000);
 
-        const min =
-        String(Math.floor(sec/60)).padStart(2,"0");
+const min =
+String(Math.floor(sec/60))
+.padStart(2,"0");
 
-        const s =
-        String(sec%60).padStart(2,"0");
+const s =
+String(sec%60)
+.padStart(2,"0");
 
-        document.getElementById("timer")
-        .innerText = `${min}:${s}`;
+document.getElementById("timer")
+.innerText =
+`${min}:${s}`;
 
-    },1000);
+},1000);
 }
 
 
-// 숫자 생성
+// 숫자
 function randomDigits(d){
 
-    if(d===1)
-        return Math.floor(Math.random()*9)+1;
+if(d===1)
+return Math.floor(Math.random()*9)+1;
 
-    if(d===2)
-        return Math.floor(Math.random()*90)+10;
+if(d===2)
+return Math.floor(Math.random()*90)+10;
 
-    return Math.floor(Math.random()*900)+100;
+return Math.floor(Math.random()*900)+100;
 }
 
 
 // 문제 생성
 function generateWorksheet(){
 
-    problems = [];
-    canvases = [];
+problems = [];
+canvases = [];
 
-    const grid =
-    document.getElementById("problemGrid");
+const grid =
+document.getElementById("problemGrid");
 
-    grid.innerHTML = "";
+grid.innerHTML = "";
 
-    const op =
-    document.getElementById("operationType").value;
+const op =
+document.getElementById("operationType").value;
 
-    const digit =
-    document.getElementById("digitType").value;
+const digit =
+document.getElementById("digitType").value;
 
-    const layout =
-    document.getElementById("layoutType").value;
+const layout =
+document.getElementById("layoutType").value;
 
-    const parts = digit.split("_");
+const parts = digit.split("_");
 
-    const d1 = Number(parts[0]);
-    const d2 = Number(parts[1]);
+const d1 = Number(parts[0]);
+const d2 = Number(parts[1]);
 
-    for(let i=0;i<8;i++){
+for(let i=0;i<8;i++){
 
-        let a,b,answer;
+let a,b,answer;
 
-        while(true){
+while(true){
 
-            a = randomDigits(d1);
-            b = randomDigits(d2);
+a = randomDigits(d1);
+b = randomDigits(d2);
 
-            if(op==="add"){
+if(op==="add"){
 
-                answer = a+b;
-                break;
+answer = a+b;
+break;
 
-            }else{
+}else{
 
-                if(a>=b){
+if(a>=b){
 
-                    answer = a-b;
-                    break;
-                }
-            }
-        }
+answer = a-b;
+break;
+}
+}
+}
 
-        problems.push({
-            a,b,answer,op
-        });
+problems.push({
+a,b,answer,op
+});
 
-        const div =
-        document.createElement("div");
+const div =
+document.createElement("div");
 
-        div.className = "problem-box";
+div.className = "problem-box";
 
-        let problemHTML = "";
+let html = "";
 
-        if(layout==="vertical"){
+if(layout==="vertical"){
 
-            const top =
-            String(a).padStart(3," ");
+html =
+`
+<div class="vertical-problem">
 
-            const bottom =
-            String(b).padStart(3," ");
+<div>
+${String(a).padStart(3," ")}
+</div>
 
-            problemHTML =
-            `
-            <div class="vertical-problem">
+<div>
+${op==="add"?"+":"-"}
+${String(b).padStart(3," ")}
+</div>
 
-                <div>${top}</div>
+<div class="vertical-line"></div>
 
-                <div>
-                ${op==="add"?"+":"-"}
-                ${bottom}
-                </div>
+</div>
+`;
 
-                <div class="vertical-line"></div>
+}else{
 
-            </div>
-            `;
+html =
+`
+<div class="horizontal-problem">
+${a}
+${op==="add"?"+":"-"}
+${b}
+=
+</div>
+`;
+}
 
-        }else{
+div.innerHTML =
+`
+<div class="problem">
+${html}
+</div>
 
-            problemHTML =
-            `
-            <div class="horizontal-problem">
-            ${a}
-            ${op==="add"?"+":"-"}
-            ${b}
-            =
-            </div>
-            `;
-        }
+<canvas id="canvas${i}">
+</canvas>
+`;
 
-        div.innerHTML =
-        `
-        <div class="problem">
-            ${problemHTML}
-        </div>
+grid.appendChild(div);
 
-        <canvas id="canvas${i}">
-        </canvas>
-        `;
-
-        grid.appendChild(div);
-
-        setupCanvas(`canvas${i}`);
-    }
+setupCanvas(`canvas${i}`);
+}
 }
 
 
 // 캔버스
 function setupCanvas(id){
 
-    const canvas =
-    document.getElementById(id);
+const canvas =
+document.getElementById(id);
 
-    const ctx =
-    canvas.getContext("2d");
+const ctx =
+canvas.getContext("2d");
 
-    canvas.width =
-    canvas.offsetWidth;
+canvas.width =
+canvas.offsetWidth;
 
-    canvas.height = 120;
+canvas.height = 135;
 
-    ctx.lineWidth = 4;
-    ctx.lineCap = "round";
+ctx.lineWidth = 3;
+ctx.lineCap = "round";
 
-    let drawing = false;
+let drawing = false;
 
-    function pos(e){
+function pos(e){
 
-        const rect =
-        canvas.getBoundingClientRect();
+const rect =
+canvas.getBoundingClientRect();
 
-        if(e.touches){
+if(e.touches){
 
-            return {
+return {
 
-                x:e.touches[0].clientX
-                - rect.left,
+x:e.touches[0].clientX
+- rect.left,
 
-                y:e.touches[0].clientY
-                - rect.top
-            };
-        }
+y:e.touches[0].clientY
+- rect.top
+};
+}
 
-        return {
+return {
 
-            x:e.clientX - rect.left,
+x:e.clientX - rect.left,
 
-            y:e.clientY - rect.top
-        };
-    }
+y:e.clientY - rect.top
+};
+}
 
-    canvas.addEventListener("mousedown",(e)=>{
+canvas.addEventListener("mousedown",(e)=>{
 
-        drawing = true;
+drawing=true;
 
-        const p = pos(e);
+const p=pos(e);
 
-        ctx.beginPath();
+ctx.beginPath();
 
-        ctx.moveTo(p.x,p.y);
-    });
+ctx.moveTo(p.x,p.y);
+});
 
-    canvas.addEventListener("mousemove",(e)=>{
+canvas.addEventListener("mousemove",(e)=>{
 
-        if(!drawing) return;
+if(!drawing) return;
 
-        const p = pos(e);
+const p=pos(e);
 
-        ctx.lineTo(p.x,p.y);
+ctx.lineTo(p.x,p.y);
 
-        ctx.stroke();
-    });
+ctx.stroke();
+});
 
-    canvas.addEventListener("mouseup",()=>{
+canvas.addEventListener("mouseup",()=>{
 
-        drawing=false;
-    });
+drawing=false;
+});
 
-    canvas.addEventListener("touchstart",(e)=>{
+canvas.addEventListener("touchstart",(e)=>{
 
-        drawing=true;
+drawing=true;
 
-        const p=pos(e);
+const p=pos(e);
 
-        ctx.beginPath();
+ctx.beginPath();
 
-        ctx.moveTo(p.x,p.y);
-    });
+ctx.moveTo(p.x,p.y);
+});
 
-    canvas.addEventListener("touchmove",(e)=>{
+canvas.addEventListener("touchmove",(e)=>{
 
-        e.preventDefault();
+e.preventDefault();
 
-        if(!drawing) return;
+if(!drawing) return;
 
-        const p=pos(e);
+const p=pos(e);
 
-        ctx.lineTo(p.x,p.y);
+ctx.lineTo(p.x,p.y);
 
-        ctx.stroke();
-    });
+ctx.stroke();
+});
 
-    canvas.addEventListener("touchend",()=>{
+canvas.addEventListener("touchend",()=>{
 
-        drawing=false;
-    });
+drawing=false;
+});
 
-    canvases.push(canvas);
+canvases.push(canvas);
 }
 
 
 // 제출
 window.submitWorksheet = async function(){
 
-    clearInterval(timerInterval);
+clearInterval(timerInterval);
 
-    const sec =
-    Math.floor((Date.now()-startTime)/1000);
+const sec =
+Math.floor((Date.now()-startTime)/1000);
 
-    const images =
-    canvases.map(c=>c.toDataURL());
+const images =
+canvases.map(c=>c.toDataURL());
 
-    const submitRef =
-    push(ref(db,"submissions"));
+const now = new Date();
 
-    await set(submitRef,{
+const title =
+`${now.getFullYear()}-${
+String(now.getMonth()+1)
+.padStart(2,"0")
+}-${
+String(now.getDate())
+.padStart(2,"0")
+}
+${
+String(now.getHours())
+.padStart(2,"0")
+}:${
+String(now.getMinutes())
+.padStart(2,"0")
+}`;
 
-        time:sec,
-        problems,
-        images,
-        checked:false,
-        results:[]
-    });
+const submitRef =
+push(ref(db,"submissions"));
 
-    alert("제출 완료");
+await set(submitRef,{
+
+title,
+time:sec,
+problems,
+images,
+results:[],
+checked:false
+});
+
+if(currentSheet < totalSheets){
+
+currentSheet++;
+
+startWorksheet();
+
+}else{
+
+alert("모든 문제 완료");
+
+goHome();
+}
+};
+
+
+// 목록
+function loadSubmissionList(){
+
+const list =
+document.getElementById("submissionList");
+
+onValue(ref(db,"submissions"),
+(snapshot)=>{
+
+const data = snapshot.val();
+
+list.innerHTML = "";
+
+if(!data){
+
+list.innerHTML="제출 없음";
+return;
+}
+
+Object.entries(data)
+.reverse()
+.forEach(([key,item])=>{
+
+const div =
+document.createElement("div");
+
+div.className = "test-item";
+
+div.innerHTML =
+`
+<div>
+${item.title}
+</div>
+
+<div style="
+margin-top:6px;
+font-size:14px;
+">
+
+풀이 시간:
+${item.time}초
+
+</div>
+
+<button
+style="margin-top:10px"
+
+onclick="openGrading(
+'${key}'
+)">
+
+채점하기
+
+</button>
+`;
+
+list.appendChild(div);
+});
+});
 }
 
 
-// 교사 화면
-function loadSubmissions(){
+// 채점 열기
+window.openGrading =
+function(key){
 
-    const list =
-    document.getElementById("submissionList");
+hideAll();
 
-    onValue(ref(db,"submissions"),(snapshot)=>{
+gradingScreen
+.classList.remove("hidden");
 
-        const data = snapshot.val();
+const grid =
+document.getElementById("gradingGrid");
 
-        list.innerHTML = "";
+grid.innerHTML = "";
 
-        if(!data){
+onValue(ref(db,
+`submissions/${key}`),
 
-            list.innerHTML="제출 없음";
+(snapshot)=>{
 
-            return;
-        }
+const item =
+snapshot.val();
 
-        Object.entries(data)
-        .reverse()
-        .forEach(([key,item])=>{
+document.getElementById(
+"gradingTitle"
+).innerText =
+item.title;
 
-            const wrap =
-            document.createElement("div");
+grid.innerHTML = "";
 
-            wrap.className = "card";
+item.problems
+.forEach((p,index)=>{
 
-            let html =
-            `
-            <div class="teacher-info">
-            푼 시간:
-            ${item.time}초
-            </div>
+const div =
+document.createElement("div");
 
-            <div class="submission-grid">
-            `;
+div.className =
+"problem-box";
 
-            item.problems.forEach((p,index)=>{
+const result =
+item.results?.[index];
 
-                html +=
-                `
-                <div class="submission-box">
+let mark = "";
 
-                    <div class="problem">
+if(result===true){
 
-                    ${p.a}
-                    ${p.op==="add"?"+":"-"}
-                    ${p.b}
+mark =
+`
+<div class="
+result-mark
+result-o
+">
+O
+</div>
+`;
 
-                    </div>
+}else if(result===false){
 
-                    <img src="${item.images[index]}">
-
-                    <div class="ox-buttons">
-
-                        <button
-                        class="correct"
-
-                        onclick="gradeSubmission(
-                        '${key}',
-                        ${index},
-                        true
-                        )">
-
-                        O
-
-                        </button>
-
-                        <button
-                        class="wrong"
-
-                        onclick="gradeSubmission(
-                        '${key}',
-                        ${index},
-                        false
-                        )">
-
-                        X
-
-                        </button>
-
-                    </div>
-
-                </div>
-                `;
-            });
-
-            html += "</div>";
-
-            wrap.innerHTML = html;
-
-            list.appendChild(wrap);
-        });
-    });
+mark =
+`
+<div class="
+result-mark
+result-x
+">
+X
+</div>
+`;
 }
+
+div.innerHTML =
+`
+${mark}
+
+<div class="problem">
+
+<div class="
+horizontal-problem
+">
+
+${p.a}
+${p.op==="add"?"+":"-"}
+${p.b}
+
+</div>
+
+</div>
+
+<img
+src="${item.images[index]}"
+style="
+width:100%;
+border-radius:10px;
+border:1px solid #ccc;
+">
+
+<div style="
+display:flex;
+gap:6px;
+margin-top:6px;
+">
+
+<button
+style="background:green"
+
+onclick="
+gradeSubmission(
+'${key}',
+${index},
+true
+)
+">
+
+O
+
+</button>
+
+<button
+style="background:red"
+
+onclick="
+gradeSubmission(
+'${key}',
+${index},
+false
+)
+">
+
+X
+
+</button>
+
+</div>
+`;
+
+grid.appendChild(div);
+});
+});
+};
 
 
 // 채점
 window.gradeSubmission =
-async function(key,index,result){
+async function(
+key,
+index,
+result
+){
 
-    const target =
-    ref(db,`submissions/${key}`);
+const target =
+ref(db,`submissions/${key}`);
 
-    onValue(target,async(snapshot)=>{
+onValue(target,
+async(snapshot)=>{
 
-        const data = snapshot.val();
+const data =
+snapshot.val();
 
-        const results =
-        data.results || [];
+const results =
+data.results || [];
 
-        results[index] = result;
+results[index] =
+result;
 
-        await update(target,{
+await update(target,{
 
-            checked:true,
-            results
-        });
+checked:true,
+results
+});
 
-    },{onlyOnce:true});
-}
+},{onlyOnce:true});
+};
 
 
-// 오답 다시하기
+// 오답
 function listenRetry(){
 
-    onValue(ref(db,"submissions"),(snapshot)=>{
+const retryArea =
+document.getElementById("retryArea");
 
-        const data = snapshot.val();
+onValue(ref(db,"submissions"),
 
-        const retryArea =
-        document.getElementById("retryArea");
+(snapshot)=>{
 
-        retryArea.innerHTML = "";
+const data =
+snapshot.val();
 
-        if(!data) return;
+retryArea.innerHTML = "";
 
-        Object.values(data).forEach(item=>{
+if(!data) return;
 
-            if(!item.checked) return;
+Object.values(data)
+.forEach(item=>{
 
-            const wrongs = [];
+if(!item.checked)
+return;
 
-            item.results.forEach((r,index)=>{
+const wrongs = [];
 
-                if(r===false){
+item.results
+.forEach((r,index)=>{
 
-                    wrongs.push(
-                        item.problems[index]
-                    );
-                }
-            });
+if(r===false){
 
-            if(wrongs.length>0){
+wrongs.push({
 
-                const div =
-                document.createElement("div");
+problem:
+item.problems[index],
 
-                div.className = "retry-box";
-
-                let html =
-                "<b>오답 다시하기</b>";
-
-                wrongs.forEach(p=>{
-
-                    html +=
-                    `
-                    <div style="margin-top:4px;">
-
-                    ${p.a}
-                    ${p.op==="add"?"+":"-"}
-                    ${p.b}
-                    = ?
-
-                    </div>
-                    `;
-                });
-
-                div.innerHTML = html;
-
-                retryArea.appendChild(div);
-            }
-        });
-    });
+image:
+item.images[index]
+});
 }
+});
+
+if(wrongs.length>0){
+
+const div =
+document.createElement("div");
+
+div.className =
+"retry-box";
+
+let html =
+`
+<h3 style="
+font-weight:400;
+margin-bottom:8px;
+">
+오답 다시하기
+</h3>
+`;
+
+wrongs.forEach((w,i)=>{
+
+html +=
+`
+<div style="
+margin-top:10px;
+">
+
+${w.problem.a}
+${w.problem.op==="add"
+?"+":"-"}
+
+${w.problem.b}
+= ?
+
+<button
+onclick="
+retryWrong(
+${w.problem.a},
+${w.problem.b},
+'${w.problem.op}'
+)
+">
+
+다시 풀기
+
+</button>
+
+</div>
+`;
+});
+
+div.innerHTML = html;
+
+retryArea.appendChild(div);
+}
+});
+});
+}
+
+
+// 오답 다시풀기
+window.retryWrong =
+function(a,b,op){
+
+hideAll();
+
+studentScreen
+.classList.remove("hidden");
+
+const grid =
+document.getElementById(
+"problemGrid"
+);
+
+grid.innerHTML = "";
+
+problems = [{
+a,b,
+answer:
+op==="add"
+?a+b
+:a-b,
+op
+}];
+
+const div =
+document.createElement("div");
+
+div.className =
+"problem-box";
+
+div.innerHTML =
+`
+<div class="
+horizontal-problem
+">
+
+${a}
+${op==="add"?"+":"-"}
+${b}
+=
+
+</div>
+
+<canvas id="retryCanvas">
+</canvas>
+
+<button
+style="
+margin-top:8px;
+"
+
+onclick="
+submitRetry()
+">
+
+오답 제출
+
+</button>
+`;
+
+grid.appendChild(div);
+
+setupCanvas("retryCanvas");
+};
+
+
+// 오답 제출
+window.submitRetry =
+async function(){
+
+const images =
+canvases.map(c=>c.toDataURL());
+
+const submitRef =
+push(ref(db,"submissions"));
+
+await set(submitRef,{
+
+title:"오답 다시풀기",
+
+time:0,
+
+problems,
+
+images,
+
+results:[],
+
+checked:false
+});
+
+alert("오답 제출 완료");
+};
 
 </script>
 
