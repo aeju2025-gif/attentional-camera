@@ -1,583 +1,392 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport"
-content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-
-<title>연산 마스터 Pro - Apple Pencil 최적화</title>
-
-<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<title>받아올림 덧셈 연산 앱</title>
 
 <style>
+    *{
+        box-sizing:border-box;
+        margin:0;
+        padding:0;
+    }
 
-:root{
-    --ios-blue:#007AFF;
-    --ios-gray:#f2f2f7;
-    --ios-green:#34c759;
-    --ios-red:#ff3b30;
-}
+    body{
+        font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+        background:#f5f5f5;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        padding:20px;
+    }
 
-*{
-    -webkit-user-select:none;
-    user-select:none;
-    -webkit-tap-highlight-color:transparent;
-    box-sizing:border-box;
-}
+    .container{
+        width:100%;
+        max-width:900px;
+    }
 
-body{
-    font-family:-apple-system,sans-serif;
-    background:var(--ios-gray);
-    margin:0;
-    padding:10px;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-}
+    .top-bar{
+        display:flex;
+        gap:10px;
+        margin-bottom:15px;
+        flex-wrap:wrap;
+    }
 
-.container{
-    width:100%;
-    max-width:900px;
-    background:white;
-    border-radius:20px;
-    padding:15px;
-    box-shadow:0 4px 15px rgba(0,0,0,0.05);
-    margin-bottom:10px;
-}
+    input, button, select{
+        padding:12px;
+        font-size:18px;
+        border-radius:10px;
+        border:none;
+    }
 
-button,select{
-    cursor:pointer;
-    border:none;
-    font-weight:bold;
-}
+    button{
+        background:#007AFF;
+        color:white;
+        cursor:pointer;
+    }
 
-.quiz-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:10px;
-    width:100%;
-}
+    button:hover{
+        opacity:0.9;
+    }
 
-.quiz-grid{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:10px;
-    width:100%;
-    position:relative;
-}
+    .problem-box{
+        background:white;
+        border-radius:20px;
+        padding:20px;
+        margin-bottom:15px;
+        text-align:center;
+        box-shadow:0 2px 8px rgba(0,0,0,0.1);
+    }
 
-.problem-card{
-    background:#fff;
-    border:1px solid #eee;
-    border-radius:12px;
-    height:320px;
-    display:flex;
-    flex-direction:column;
-    position:relative;
-    z-index:1;
-}
+    .problem{
+        font-size:48px;
+        font-weight:bold;
+    }
 
-.problem-header{
-    display:flex;
-    justify-content:space-between;
-    padding:10px;
-    height:90px;
-    align-items:center;
-}
+    .canvas-container{
+        background:white;
+        border-radius:20px;
+        overflow:hidden;
+        box-shadow:0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom:15px;
+    }
 
-.problem-text{
-    flex:1;
-    text-align:center;
-    font-size:1.8rem;
-    font-weight:bold;
-    pointer-events:none;
-}
+    canvas{
+        width:100%;
+        height:500px;
+        background:white;
+        touch-action:none;
+        display:block;
+    }
 
-.text-vert{
-    font-family:'Courier New',monospace;
-    text-align:right;
-    line-height:1.1;
-}
+    .button-group{
+        display:flex;
+        gap:10px;
+        margin-bottom:20px;
+        flex-wrap:wrap;
+    }
 
-.vert-line{
-    border-bottom:3px solid #333;
-    width:100%;
-    margin-top:5px;
-}
+    .teacher-panel{
+        background:white;
+        border-radius:20px;
+        padding:20px;
+        box-shadow:0 2px 8px rgba(0,0,0,0.1);
+    }
 
-#mainCanvas{
-    position:absolute;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    z-index:10;
-    background:transparent;
+    .submission{
+        border:1px solid #ddd;
+        border-radius:15px;
+        padding:15px;
+        margin-top:15px;
+    }
 
-    touch-action:none;
-    -webkit-touch-callout:none;
-}
+    .submission img{
+        width:100%;
+        max-width:400px;
+        border:1px solid #ddd;
+        margin-top:10px;
+    }
 
-.btn-clear{
-    background:#e5e5ea;
-    color:#333;
-    padding:8px 12px;
-    border-radius:8px;
-    font-size:0.8rem;
-    z-index:20;
-    position:relative;
-}
+    .correct{
+        color:green;
+        font-weight:bold;
+    }
 
-.btn-main{
-    background:var(--ios-blue);
-    color:white;
-    padding:15px;
-    border-radius:12px;
-    width:100%;
-    font-size:1.1rem;
-}
-
-.hidden{
-    display:none !important;
-}
-
-select{
-    width:100%;
-    padding:12px;
-    border-radius:10px;
-    border:1px solid #ddd;
-    margin-bottom:10px;
-    background:#fff;
-    font-size:1rem;
-}
+    .wrong{
+        color:red;
+        font-weight:bold;
+    }
 
 </style>
 </head>
 
 <body>
 
-<div id="loginGate" class="container">
+<div class="container">
 
-    <h2 style="text-align:center;">
-        🏫 온라인 연산 교실
-    </h2>
+    <div class="top-bar">
+        <input type="text" id="studentName" placeholder="학생 이름 입력">
+        <button onclick="generateProblem()">새 문제</button>
+    </div>
 
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+    <div class="problem-box">
+        <div class="problem" id="problem">8 + 7 = ?</div>
+    </div>
 
-        <button class="btn-main"
-        style="height:120px;"
-        onclick="showView('studentSetup')">
+    <div class="canvas-container">
+        <canvas id="drawCanvas"></canvas>
+    </div>
 
-            학생용
+    <div class="button-group">
+        <button onclick="clearCanvas()">지우기</button>
+        <button onclick="submitAnswer()">제출하기</button>
+    </div>
 
-        </button>
+    <div class="teacher-panel">
+        <h2>교사 채점 화면</h2>
 
-        <button class="btn-main"
-        style="height:120px; background:#5856d6;">
+        <button onclick="loadSubmissions()">제출 새로고침</button>
 
-            교사용
-
-        </button>
-
+        <div id="submissionList"></div>
     </div>
 
 </div>
 
-<div id="studentSetup" class="container hidden">
+<script type="module">
 
-    <label>연산 설정</label>
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
-    <select id="opType">
+import {
+    getDatabase,
+    ref,
+    push,
+    set,
+    onValue
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-        <option value="add">덧셈 (+)</option>
-        <option value="sub">뺄셈 (-)</option>
+import {
+    getAnalytics
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
 
-    </select>
 
-    <select id="uiType">
-
-        <option value="vert">세로셈</option>
-        <option value="horiz">가로셈</option>
-
-    </select>
-
-    <button class="btn-main" onclick="startQuiz()">
-
-        학습 시작
-
-    </button>
-
-</div>
-
-<div id="quizPage"
-class="container hidden"
-style="background:transparent; box-shadow:none; padding:0;">
-
-    <div class="quiz-header"
-    style="background:white; padding:15px; border-radius:20px;">
-
-        <div id="timerDisplay"
-        style="color:var(--ios-red); font-weight:bold;">
-
-            00:00
-
-        </div>
-
-        <button onclick="submitAll()"
-        style="background:var(--ios-green);
-        color:white;
-        padding:10px 20px;
-        border-radius:10px;">
-
-            제출 및 종료
-
-        </button>
-
-    </div>
-
-    <div style="position:relative; width:100%;">
-
-        <div id="quizGrid" class="quiz-grid"></div>
-
-        <canvas id="mainCanvas"></canvas>
-
-    </div>
-
-</div>
-
-<script>
-
-/* Firebase */
-
+// Firebase 설정
 const firebaseConfig = {
-
-    apiKey:"AIzaSyByzHhGCTA2yE89tYCeOkhJQ1PiyPJ9Csk",
-    authDomain:"math-98dc8.firebaseapp.com",
-    databaseURL:"https://math-98dc8-default-rtdb.firebaseio.com",
-    projectId:"math-98dc8",
-    storageBucket:"math-98dc8.firebasestorage.app",
-    messagingSenderId:"998893080786",
-    appId:"1:998893080786:web:fc2ce7af37e3bd0cd85d0b"
+    apiKey: "AIzaSyByzHhGCTA2yE89tYCeOkhJQ1PiyPJ9Csk",
+    authDomain: "math-98dc8.firebaseapp.com",
+    databaseURL: "https://math-98dc8-default-rtdb.firebaseio.com",
+    projectId: "math-98dc8",
+    storageBucket: "math-98dc8.firebasestorage.app",
+    messagingSenderId: "998893080786",
+    appId: "1:998893080786:web:fc2ce7af37e3bd0cd85d0b",
+    measurementId: "G-TC28EDFTWR"
 };
 
-firebase.initializeApp(firebaseConfig);
+// Firebase 초기화
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+const db = getDatabase(app);
 
-const database = firebase.database();
 
-/* 변수 */
+// 문제 변수
+let num1 = 8;
+let num2 = 7;
 
-let ctx;
+
+// 문제 생성
+window.generateProblem = function(){
+
+    while(true){
+
+        let a = Math.floor(Math.random() * 9) + 1;
+        let b = Math.floor(Math.random() * 9) + 1;
+
+        if(a + b >= 10){
+
+            num1 = a;
+            num2 = b;
+
+            document.getElementById("problem").innerText =
+                `${num1} + ${num2} = ?`;
+
+            clearCanvas();
+
+            break;
+        }
+    }
+}
+
+
+// 캔버스 설정
+const canvas = document.getElementById("drawCanvas");
+const ctx = canvas.getContext("2d");
+
+function resizeCanvas(){
+
+    canvas.width = canvas.offsetWidth;
+    canvas.height = 500;
+
+    ctx.lineWidth = 6;
+    ctx.lineCap = "round";
+    ctx.strokeStyle = "black";
+}
+
+resizeCanvas();
+
+window.addEventListener("resize", resizeCanvas);
+
+
+// 필기 기능
 let drawing = false;
-let problems = [];
-let penActive = false;
 
-const canvas = document.getElementById('mainCanvas');
+function getPos(e){
 
-/* 화면 전환 */
+    const rect = canvas.getBoundingClientRect();
 
-function showView(id){
-
-    document.querySelectorAll('.container').forEach(c=>{
-
-        c.classList.add('hidden');
-
-    });
-
-    document.getElementById(id).classList.remove('hidden');
-}
-
-/* 문제 생성 */
-
-function generateRegroupProblem(op){
-
-    let n1,n2;
-
-    if(op === 'add'){
-
-        n1 = Math.floor(Math.random()*80)+11;
-
-        n2 = Math.floor(Math.random()*8)+(10-(n1%10));
-
-        if(n1%10===0) n2=9;
-
-    }else{
-
-        n1 = Math.floor(Math.random()*70)+21;
-
-        n2 = Math.floor(Math.random()*8)+(n1%10+1);
-
-        if(n2>9) n2=9;
-
-        if(n1%10===9) n1-=1;
-    }
-
-    return [n1,n2];
-}
-
-/* 퀴즈 시작 */
-
-function startQuiz(){
-
-    showView('quizPage');
-
-    const grid = document.getElementById('quizGrid');
-
-    grid.innerHTML = "";
-
-    problems = [];
-
-    const op = document.getElementById('opType').value;
-
-    const ui = document.getElementById('uiType').value;
-
-    for(let i=0;i<8;i++){
-
-        const [n1,n2] = generateRegroupProblem(op);
-
-        problems.push({
-
-            n1,
-            n2,
-            op: op==='add'?'+':'-'
-        });
-
-        const card = document.createElement('div');
-
-        card.className = 'problem-card';
-
-        card.id = `card-${i}`;
-
-        let html = '';
-
-        if(ui === 'horiz'){
-
-            html = `${n1} ${op==='add'?'+':'-'} ${n2} =`;
-
-        }else{
-
-            html = `
-            <div class="text-vert">
-                ${n1}<br>
-                ${op==='add'?'+':'-'} ${n2}
-                <div class="vert-line"></div>
-            </div>
-            `;
-        }
-
-        card.innerHTML = `
-
-        <div class="problem-header">
-
-            <div style="width:40px;"></div>
-
-            <div class="problem-text">
-
-                ${html}
-
-            </div>
-
-            <button class="btn-clear"
-            onclick="clearArea(${i})">
-
-                지우기
-
-            </button>
-
-        </div>
-        `;
-
-        grid.appendChild(card);
-    }
-
-    setTimeout(initCanvas,100);
-}
-
-/* 캔버스 초기화 */
-
-function initCanvas(){
-
-    const grid = document.getElementById('quizGrid');
-
-    const rect = grid.getBoundingClientRect();
-
-    canvas.width = rect.width;
-    canvas.height = rect.height;
-
-    ctx = canvas.getContext('2d',{
-
-        alpha:true,
-        desynchronized:true,
-        willReadFrequently:false
-    });
-
-    ctx.strokeStyle = '#007AFF';
-    ctx.lineWidth = 1.5;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-
-    const getPos = (e)=>{
-
-        const r = canvas.getBoundingClientRect();
-
-        return{
-
-            x:e.clientX-r.left,
-            y:e.clientY-r.top
+    if(e.touches){
+        return {
+            x:e.touches[0].clientX - rect.left,
+            y:e.touches[0].clientY - rect.top
         };
-    };
-
-    /* Apple Pencil 최적화 */
-
-    canvas.addEventListener('pointerdown',(e)=>{
-
-        if(e.pointerType === 'touch' && !penActive) return;
-
-        if(e.pointerType === 'pen'){
-
-            penActive = true;
-        }
-
-        drawing = true;
-
-        const p = getPos(e);
-
-        ctx.beginPath();
-
-        ctx.moveTo(p.x,p.y);
-
-    },{ passive:true });
-
-    canvas.addEventListener('pointermove',(e)=>{
-
-        if(!drawing) return;
-
-        if(penActive && e.pointerType === 'touch') return;
-
-        const p = getPos(e);
-
-        ctx.lineTo(p.x,p.y);
-
-        ctx.stroke();
-
-    },{ passive:true });
-
-    canvas.addEventListener('pointerup',(e)=>{
-
-        drawing = false;
-
-        if(e.pointerType === 'pen'){
-
-            setTimeout(()=>{
-
-                penActive = false;
-
-            },80);
-        }
-
-    },{ passive:true });
-
-    canvas.addEventListener('pointercancel',()=>{
-
-        drawing = false;
-
-        setTimeout(()=>{
-
-            penActive = false;
-
-        },80);
-
-    },{ passive:true });
-}
-
-/* 개별 영역 지우기 */
-
-function clearArea(idx){
-
-    const card = document.getElementById(`card-${idx}`);
-
-    const rect = card.getBoundingClientRect();
-
-    const gridRect =
-    document.getElementById('quizGrid')
-    .getBoundingClientRect();
-
-    const x = rect.left-gridRect.left;
-
-    const y = rect.top-gridRect.top;
-
-    ctx.clearRect(
-
-        x+5,
-        y+95,
-        rect.width-10,
-        rect.height-100
-    );
-}
-
-/* 제출 */
-
-async function submitAll(){
-
-    if(!confirm("제출하시겠습니까?")) return;
-
-    const individualImgs = [];
-
-    const gridRect =
-    document.getElementById('quizGrid')
-    .getBoundingClientRect();
-
-    for(let i=0;i<8;i++){
-
-        const card = document.getElementById(`card-${i}`);
-
-        const r = card.getBoundingClientRect();
-
-        const tempCanvas = document.createElement('canvas');
-
-        tempCanvas.width = r.width;
-
-        tempCanvas.height = r.height;
-
-        const tCtx = tempCanvas.getContext('2d');
-
-        tCtx.drawImage(
-
-            canvas,
-
-            r.left-gridRect.left,
-            r.top-gridRect.top,
-
-            r.width,
-            r.height,
-
-            0,
-            0,
-
-            r.width,
-            r.height
-        );
-
-        individualImgs.push(
-
-            tempCanvas.toDataURL()
-        );
     }
 
-    await database.ref('records').push({
+    return {
+        x:e.clientX - rect.left,
+        y:e.clientY - rect.top
+    };
+}
 
-        date:new Date().toLocaleString(),
 
-        problems:problems,
+function startDraw(e){
 
-        imgs:individualImgs
+    drawing = true;
+
+    const pos = getPos(e);
+
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+}
+
+function draw(e){
+
+    if(!drawing) return;
+
+    e.preventDefault();
+
+    const pos = getPos(e);
+
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+}
+
+function endDraw(){
+
+    drawing = false;
+}
+
+
+canvas.addEventListener("mousedown", startDraw);
+canvas.addEventListener("mousemove", draw);
+canvas.addEventListener("mouseup", endDraw);
+
+canvas.addEventListener("touchstart", startDraw);
+canvas.addEventListener("touchmove", draw);
+canvas.addEventListener("touchend", endDraw);
+
+
+// 지우기
+window.clearCanvas = function(){
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+}
+
+
+// 제출
+window.submitAnswer = async function(){
+
+    const studentName =
+        document.getElementById("studentName").value.trim();
+
+    if(studentName === ""){
+        alert("학생 이름을 입력하세요");
+        return;
+    }
+
+    const imageData = canvas.toDataURL("image/png");
+
+    const submissionRef = push(ref(db, "submissions"));
+
+    await set(submissionRef, {
+
+        studentName: studentName,
+
+        problem: `${num1} + ${num2}`,
+
+        answer: num1 + num2,
+
+        image: imageData,
+
+        timestamp: Date.now()
     });
 
-    alert("성공적으로 제출되었습니다!");
+    alert("제출 완료!");
 
-    location.reload();
+    generateProblem();
 }
+
+
+// 교사 화면
+window.loadSubmissions = function(){
+
+    const submissionsRef = ref(db, "submissions");
+
+    onValue(submissionsRef, (snapshot)=>{
+
+        const data = snapshot.val();
+
+        const list =
+            document.getElementById("submissionList");
+
+        list.innerHTML = "";
+
+        if(!data){
+            list.innerHTML = "<p>제출 없음</p>";
+            return;
+        }
+
+        const entries =
+            Object.entries(data).reverse();
+
+        entries.forEach(([key, item])=>{
+
+            const div = document.createElement("div");
+
+            div.className = "submission";
+
+            div.innerHTML = `
+                <h3>${item.studentName}</h3>
+
+                <p>
+                    문제:
+                    <strong>${item.problem}</strong>
+                </p>
+
+                <p>
+                    정답:
+                    <strong>${item.answer}</strong>
+                </p>
+
+                <img src="${item.image}">
+            `;
+
+            list.appendChild(div);
+        });
+    });
+}
+
+
+// 시작 시 문제 생성
+generateProblem();
 
 </script>
 
