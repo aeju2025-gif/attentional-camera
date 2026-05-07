@@ -1,72 +1,220 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>연산 마스터 Pro - 최종본</title>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
-    <style>
-        :root { --ios-blue: #007AFF; --ios-gray: #f2f2f7; --ios-green: #34c759; --ios-red: #ff3b30; }
-        * { -webkit-user-select: none; user-select: none; touch-action: none !important; -webkit-tap-highlight-color: transparent; }
-        body { font-family: -apple-system, sans-serif; background: var(--ios-gray); margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
-        
-        .container { width: 100%; max-width: 900px; background: white; border-radius: 20px; padding: 15px; box-sizing: border-box; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 10px; }
-        button, select { touch-action: manipulation !important; cursor: pointer; border: none; font-weight: bold; }
-        
-        /* 헤더 스타일 */
-        .quiz-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; width: 100%; }
-        
-        /* 2열 4행 그리드 */
-        .quiz-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; position: relative; }
-        
-        .problem-card { 
-            background: #fff; border: 1px solid #eee; border-radius: 12px; height: 320px; 
-            display: flex; flex-direction: column; position: relative; z-index: 1; 
-        }
-        
-        /* 문제 텍스트 스타일 */
-        .problem-header { display: flex; justify-content: space-between; padding: 10px; height: 90px; align-items: center; }
-        .problem-text { flex: 1; text-align: center; font-size: 1.8rem; font-weight: bold; pointer-events: none; }
-        .text-vert { font-family: 'Courier New', monospace; text-align: right; line-height: 1.1; }
-        .vert-line { border-bottom: 3px solid #333; width: 100%; margin-top: 5px; }
+<meta charset="UTF-8">
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
-        /* 펜슬 전용 단일 캔버스 레이어 */
-        #mainCanvas {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 10; pointer-events: auto; background: transparent;
-        }
+<title>연산 마스터 Pro - Pencil 최적화</title>
 
-        .btn-clear { background: #e5e5ea; color: #333; padding: 8px 12px; border-radius: 8px; font-size: 0.8rem; z-index: 20; position: relative; }
-        .btn-main { background: var(--ios-blue); color: white; padding: 15px; border-radius: 12px; width: 100%; font-size: 1.1rem; }
-        .hidden { display: none !important; }
-        
-        select { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 10px; background: #fff; font-size: 1rem; }
-    </style>
+<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+
+<style>
+:root{
+    --ios-blue:#007AFF;
+    --ios-gray:#f2f2f7;
+    --ios-green:#34c759;
+    --ios-red:#ff3b30;
+}
+
+body{
+    font-family:-apple-system,sans-serif;
+    background:var(--ios-gray);
+    margin:0;
+    padding:10px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+}
+
+/* 전역 touch-action 제거 */
+*{
+    -webkit-user-select:none;
+    user-select:none;
+    -webkit-tap-highlight-color:transparent;
+    box-sizing:border-box;
+}
+
+.container{
+    width:100%;
+    max-width:900px;
+    background:white;
+    border-radius:20px;
+    padding:15px;
+    box-shadow:0 4px 15px rgba(0,0,0,0.05);
+    margin-bottom:10px;
+}
+
+button,select{
+    cursor:pointer;
+    border:none;
+    font-weight:bold;
+}
+
+.quiz-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:10px;
+    width:100%;
+}
+
+.quiz-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    width:100%;
+    position:relative;
+}
+
+.problem-card{
+    background:#fff;
+    border:1px solid #eee;
+    border-radius:12px;
+    height:320px;
+    display:flex;
+    flex-direction:column;
+    position:relative;
+    z-index:1;
+}
+
+.problem-header{
+    display:flex;
+    justify-content:space-between;
+    padding:10px;
+    height:90px;
+    align-items:center;
+}
+
+.problem-text{
+    flex:1;
+    text-align:center;
+    font-size:1.8rem;
+    font-weight:bold;
+    pointer-events:none;
+}
+
+.text-vert{
+    font-family:'Courier New',monospace;
+    text-align:right;
+    line-height:1.1;
+}
+
+.vert-line{
+    border-bottom:3px solid #333;
+    width:100%;
+    margin-top:5px;
+}
+
+#mainCanvas{
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    z-index:10;
+    background:transparent;
+
+    /* 핵심 최적화 */
+    touch-action:none;
+    -webkit-touch-callout:none;
+}
+
+.btn-clear{
+    background:#e5e5ea;
+    color:#333;
+    padding:8px 12px;
+    border-radius:8px;
+    font-size:0.8rem;
+    z-index:20;
+    position:relative;
+}
+
+.btn-main{
+    background:var(--ios-blue);
+    color:white;
+    padding:15px;
+    border-radius:12px;
+    width:100%;
+    font-size:1.1rem;
+}
+
+.hidden{
+    display:none !important;
+}
+
+select{
+    width:100%;
+    padding:12px;
+    border-radius:10px;
+    border:1px solid #ddd;
+    margin-bottom:10px;
+    background:#fff;
+    font-size:1rem;
+}
+</style>
 </head>
+
 <body>
 
 <div id="loginGate" class="container">
     <h2 style="text-align:center;">🏫 온라인 연산 교실</h2>
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-        <button class="btn-main" style="height:120px;" onclick="showView('studentSetup')">학생용</button>
-        <button class="btn-main" style="height:120px; background:#5856d6;" onclick="showView('teacherLogin')">교사용</button>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+        <button class="btn-main"
+        style="height:120px;"
+        onclick="showView('studentSetup')">
+            학생용
+        </button>
+
+        <button class="btn-main"
+        style="height:120px; background:#5856d6;">
+            교사용
+        </button>
     </div>
 </div>
 
 <div id="studentSetup" class="container hidden">
+
     <label>연산 설정</label>
-    <select id="opType"><option value="add">덧셈 (+)</option><option value="sub">뺄셈 (-)</option></select>
-    <select id="uiType"><option value="vert">세로셈</option><option value="horiz">가로셈</option></select>
-    <button class="btn-main" onclick="startQuiz()">학습 시작</button>
+
+    <select id="opType">
+        <option value="add">덧셈 (+)</option>
+        <option value="sub">뺄셈 (-)</option>
+    </select>
+
+    <select id="uiType">
+        <option value="vert">세로셈</option>
+        <option value="horiz">가로셈</option>
+    </select>
+
+    <button class="btn-main" onclick="startQuiz()">
+        학습 시작
+    </button>
 </div>
 
-<div id="quizPage" class="container hidden" style="background:transparent; box-shadow:none; padding:0;">
-    <div class="quiz-header" style="background:white; padding:15px; border-radius:20px; box-sizing:border-box;">
-        <div id="timerDisplay" style="color:var(--ios-red); font-weight:bold;">00:00</div>
-        <button onclick="submitAll()" style="background:var(--ios-green); color:white; padding:10px 20px; border-radius:10px;">제출 및 종료</button>
+<div id="quizPage"
+class="container hidden"
+style="background:transparent; box-shadow:none; padding:0;">
+
+    <div class="quiz-header"
+    style="background:white; padding:15px; border-radius:20px;">
+
+        <div id="timerDisplay"
+        style="color:var(--ios-red); font-weight:bold;">
+            00:00
+        </div>
+
+        <button onclick="submitAll()"
+        style="background:var(--ios-green);
+        color:white;
+        padding:10px 20px;
+        border-radius:10px;">
+            제출 및 종료
+        </button>
     </div>
-    
+
     <div style="position:relative; width:100%;">
         <div id="quizGrid" class="quiz-grid"></div>
         <canvas id="mainCanvas"></canvas>
@@ -74,148 +222,283 @@
 </div>
 
 <script>
-    // Firebase 초기화
-    const firebaseConfig = { apiKey: "AIzaSyByzHhGCTA2yE89tYCeOkhJQ1PiyPJ9Csk", authDomain: "math-98dc8.firebaseapp.com", databaseURL: "https://math-98dc8-default-rtdb.firebaseio.com", projectId: "math-98dc8", storageBucket: "math-98dc8.firebasestorage.app", messagingSenderId: "998893080786", appId: "1:998893080786:web:fc2ce7af37e3bd0cd85d0b" };
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
 
-    let ctx, drawing = false, lastX, lastY, problems = [];
-    const canvas = document.getElementById('mainCanvas');
+/* Firebase */
+const firebaseConfig = {
+    apiKey: "AIzaSyByzHhGCTA2yE89tYCeOkhJQ1PiyPJ9Csk",
+    authDomain: "math-98dc8.firebaseapp.com",
+    databaseURL: "https://math-98dc8-default-rtdb.firebaseio.com",
+    projectId: "math-98dc8",
+    storageBucket: "math-98dc8.firebasestorage.app",
+    messagingSenderId: "998893080786",
+    appId: "1:998893080786:web:fc2ce7af37e3bd0cd85d0b"
+};
 
-    function showView(id) { document.querySelectorAll('.container').forEach(c => c.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
 
-    function generateRegroupProblem(op) {
-        let n1, n2;
-        if(op === 'add') {
-            n1 = Math.floor(Math.random()*80)+11;
-            n2 = Math.floor(Math.random()*8)+(10-(n1%10)); // 일의자리 합 10 이상 강제
-            if(n1%10 === 0) n2 = 9; 
-        } else {
-            n1 = Math.floor(Math.random()*70)+21;
-            n2 = Math.floor(Math.random()*8)+(n1%10+1); // 받아내림 강제
-            if(n2 > 9) n2 = 9;
-            if(n1%10 === 9) n1 -= 1;
-        }
-        return [n1, n2];
+/* 변수 */
+let ctx;
+let drawing = false;
+let problems = [];
+
+const canvas = document.getElementById('mainCanvas');
+
+/* 화면 전환 */
+function showView(id){
+    document.querySelectorAll('.container').forEach(c=>{
+        c.classList.add('hidden');
+    });
+
+    document.getElementById(id).classList.remove('hidden');
+}
+
+/* 문제 생성 */
+function generateRegroupProblem(op){
+
+    let n1,n2;
+
+    if(op === 'add'){
+
+        n1 = Math.floor(Math.random()*80)+11;
+        n2 = Math.floor(Math.random()*8)+(10-(n1%10));
+
+        if(n1%10===0) n2=9;
+
+    }else{
+
+        n1 = Math.floor(Math.random()*70)+21;
+        n2 = Math.floor(Math.random()*8)+(n1%10+1);
+
+        if(n2>9) n2=9;
+        if(n1%10===9) n1-=1;
     }
 
-    function startQuiz() {
-        showView('quizPage');
-        const grid = document.getElementById('quizGrid');
-        grid.innerHTML = "";
-        problems = [];
-        const op = document.getElementById('opType').value;
-        const ui = document.getElementById('uiType').value;
+    return [n1,n2];
+}
 
-        for(let i=0; i<8; i++) {
-            const [n1, n2] = generateRegroupProblem(op);
-            problems.push({ n1, n2, op: op==='add'?'+':'-' });
-            
-            const card = document.createElement('div');
-            card.className = 'problem-card';
-            card.id = `card-${i}`;
-            let html = ui === 'horiz' ? `${n1} ${op==='add'?'+':'-'} ${n2} =` : `<div class="text-vert">${n1}<br>${op==='add'?'+':'-'} ${n2}<div class="vert-line"></div></div>`;
-            
-            card.innerHTML = `
-                <div class="problem-header">
-                    <div style="width:40px;"></div>
-                    <div class="problem-text">${html}</div>
-                    <button class="btn-clear" onclick="clearArea(${i})">지우기</button>
-                </div>
+/* 시작 */
+function startQuiz(){
+
+    showView('quizPage');
+
+    const grid = document.getElementById('quizGrid');
+
+    grid.innerHTML = "";
+
+    problems = [];
+
+    const op = document.getElementById('opType').value;
+    const ui = document.getElementById('uiType').value;
+
+    for(let i=0;i<8;i++){
+
+        const [n1,n2] = generateRegroupProblem(op);
+
+        problems.push({
+            n1,
+            n2,
+            op: op==='add'?'+':'-'
+        });
+
+        const card = document.createElement('div');
+
+        card.className = 'problem-card';
+        card.id = `card-${i}`;
+
+        let html = '';
+
+        if(ui==='horiz'){
+
+            html = `${n1} ${op==='add'?'+':'-'} ${n2} =`;
+
+        }else{
+
+            html = `
+            <div class="text-vert">
+                ${n1}<br>
+                ${op==='add'?'+':'-'} ${n2}
+                <div class="vert-line"></div>
+            </div>
             `;
-            grid.appendChild(card);
         }
-        setTimeout(initCanvas, 100);
+
+        card.innerHTML = `
+        <div class="problem-header">
+
+            <div style="width:40px;"></div>
+
+            <div class="problem-text">
+                ${html}
+            </div>
+
+            <button class="btn-clear"
+            onclick="clearArea(${i})">
+                지우기
+            </button>
+
+        </div>
+        `;
+
+        grid.appendChild(card);
     }
 
-    function initCanvas() {
-        const grid = document.getElementById('quizGrid');
-        const rect = grid.getBoundingClientRect();
-        canvas.width = rect.width;
-        canvas.height = rect.height;
-        ctx = canvas.getContext('2d', { desynchronized: true, alpha: true });
-        
-        const getPos = (e) => {
-            const r = canvas.getBoundingClientRect();
-            return { x: e.clientX - r.left, y: e.clientY - r.top };
+    setTimeout(initCanvas,100);
+}
+
+/* 캔버스 초기화 */
+function initCanvas(){
+
+    const grid = document.getElementById('quizGrid');
+
+    const rect = grid.getBoundingClientRect();
+
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+
+    ctx = canvas.getContext('2d',{
+        alpha:true,
+        desynchronized:true
+    });
+
+    /* 성능 최적화 */
+    ctx.strokeStyle = '#007AFF';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    const getPos = (e)=>{
+
+        const r = canvas.getBoundingClientRect();
+
+        return{
+            x:e.clientX-r.left,
+            y:e.clientY-r.top
         };
+    };
 
-        canvas.addEventListener('pointerdown', (e) => {
-            if (e.pointerType !== 'pen') return;
-            canvas.setPointerCapture(e.pointerId);
-            drawing = true;
-            const p = getPos(e);
-            lastX = p.x; lastY = p.y;
-            ctx.beginPath();
-            ctx.moveTo(lastX, lastY);
-        });
+    /* 기존 이벤트 제거 */
+    canvas.onpointerdown = null;
+    canvas.onpointermove = null;
+    canvas.onpointerup = null;
 
-        canvas.addEventListener('pointermove', (e) => {
-            if (!drawing || e.pointerType !== 'pen') return;
-            const events = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
-            ctx.strokeStyle = '#007AFF';
-            ctx.lineWidth = 3;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            
-            for (let ev of events) {
-                const p = getPos(ev);
-                ctx.lineTo(p.x, p.y);
-                ctx.stroke();
-                lastX = p.x; lastY = p.y;
-            }
-        });
+    /* Pencil 입력 */
+    canvas.addEventListener('pointerdown',(e)=>{
 
-        canvas.addEventListener('pointerup', (e) => {
-            drawing = false;
-            canvas.releasePointerCapture(e.pointerId);
-        });
+        /* 손바닥 차단 */
+        if(e.pointerType === 'touch') return;
+
+        drawing = true;
+
+        const p = getPos(e);
+
+        ctx.beginPath();
+        ctx.moveTo(p.x,p.y);
+
+    }, { passive:true });
+
+    canvas.addEventListener('pointermove',(e)=>{
+
+        if(!drawing) return;
+
+        if(e.pointerType === 'touch') return;
+
+        const p = getPos(e);
+
+        ctx.lineTo(p.x,p.y);
+        ctx.stroke();
+
+    }, { passive:true });
+
+    canvas.addEventListener('pointerup',()=>{
+
+        drawing = false;
+
+    }, { passive:true });
+
+    canvas.addEventListener('pointercancel',()=>{
+
+        drawing = false;
+
+    }, { passive:true });
+}
+
+/* 개별 영역 지우기 */
+function clearArea(idx){
+
+    const card = document.getElementById(`card-${idx}`);
+
+    const rect = card.getBoundingClientRect();
+
+    const gridRect =
+    document.getElementById('quizGrid')
+    .getBoundingClientRect();
+
+    const x = rect.left-gridRect.left;
+    const y = rect.top-gridRect.top;
+
+    ctx.clearRect(
+        x+5,
+        y+95,
+        rect.width-10,
+        rect.height-100
+    );
+}
+
+/* 제출 */
+async function submitAll(){
+
+    if(!confirm("제출하시겠습니까?")) return;
+
+    const individualImgs = [];
+
+    const gridRect =
+    document.getElementById('quizGrid')
+    .getBoundingClientRect();
+
+    for(let i=0;i<8;i++){
+
+        const card = document.getElementById(`card-${i}`);
+
+        const r = card.getBoundingClientRect();
+
+        const tempCanvas = document.createElement('canvas');
+
+        tempCanvas.width = r.width;
+        tempCanvas.height = r.height;
+
+        const tCtx = tempCanvas.getContext('2d');
+
+        tCtx.drawImage(
+            canvas,
+            r.left-gridRect.left,
+            r.top-gridRect.top,
+            r.width,
+            r.height,
+            0,
+            0,
+            r.width,
+            r.height
+        );
+
+        individualImgs.push(
+            tempCanvas.toDataURL()
+        );
     }
 
-    // 개별 영역 지우기 로직
-    function clearArea(idx) {
-        const card = document.getElementById(`card-${idx}`);
-        const rect = card.getBoundingClientRect();
-        const gridRect = document.getElementById('quizGrid').getBoundingClientRect();
-        
-        // 카드의 위치를 메인 캔버스 좌표로 변환
-        const x = rect.left - gridRect.left;
-        const y = rect.top - gridRect.top;
-        
-        // 문제 텍스트 영역(상단 90px)을 제외한 아래 드로잉 구역만 지우기
-        ctx.clearRect(x + 5, y + 95, rect.width - 10, rect.height - 100);
-    }
+    await database.ref('records').push({
 
-    async function submitAll() {
-        if(!confirm("제출하시겠습니까?")) return;
-        
-        const individualImgs = [];
-        const gridRect = document.getElementById('quizGrid').getBoundingClientRect();
+        date:new Date().toLocaleString(),
+        problems:problems,
+        imgs:individualImgs
+    });
 
-        // 8개의 구역을 각각 캔버스로 잘라서 추출
-        for(let i=0; i<8; i++) {
-            const card = document.getElementById(`card-${i}`);
-            const r = card.getBoundingClientRect();
-            
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = r.width;
-            tempCanvas.height = r.height;
-            const tCtx = tempCanvas.getContext('2d');
-            
-            // 메인 캔버스에서 해당 카드 영역만 복사
-            tCtx.drawImage(canvas, r.left - gridRect.left, r.top - gridRect.top, r.width, r.height, 0, 0, r.width, r.height);
-            individualImgs.push(tempCanvas.toDataURL());
-        }
+    alert("성공적으로 제출되었습니다!");
 
-        await database.ref('records').push({
-            date: new Date().toLocaleString(),
-            problems: problems,
-            imgs: individualImgs
-        });
-        
-        alert("성공적으로 제출되었습니다!");
-        location.reload();
-    }
+    location.reload();
+}
+
 </script>
+
 </body>
 </html>
