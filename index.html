@@ -2,23 +2,50 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
+
 <meta name="viewport"
-content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
+content="
+width=device-width,
+initial-scale=1.0,
+maximum-scale=1.0,
+user-scalable=no
+">
 
 <title>수학 연산 앱</title>
 
 <style>
 
-*{
+html,body{
+
     margin:0;
     padding:0;
-    box-sizing:border-box;
+
+    width:100%;
+    height:100%;
+
+    overflow:hidden;
+
+    background:#f2f2f7;
+
+    font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+
+    overscroll-behavior:none;
+
+    touch-action:none;
+
+    -webkit-user-select:none;
+    user-select:none;
+
+    -webkit-touch-callout:none;
+
+    position:fixed;
 }
 
-body{
-    font-family:-apple-system,BlinkMacSystemFont,sans-serif;
-    background:#f2f2f7;
-    color:#111;
+*{
+    box-sizing:border-box;
 }
 
 .hidden{
@@ -26,142 +53,229 @@ body{
 }
 
 .screen{
-    min-height:100vh;
+
+    width:100%;
+    height:100%;
+
+    overflow-y:auto;
+
     padding:10px;
 }
 
 .center{
+
     display:flex;
     flex-direction:column;
+
     justify-content:center;
     align-items:center;
+
     gap:14px;
 }
 
 .card{
+
     background:white;
+
     border-radius:18px;
+
     padding:16px;
-    box-shadow:0 2px 8px rgba(0,0,0,0.08);
+
+    box-shadow:
+    0 2px 8px
+    rgba(0,0,0,0.08);
 }
 
 .big-button{
+
     width:260px;
+
     padding:18px;
+
     border:none;
+
     border-radius:18px;
+
     background:#007AFF;
+
     color:white;
+
     font-size:24px;
+
     font-weight:400;
 }
 
-input,select,button{
+button,
+select,
+input{
+
     font-size:16px;
+
     padding:10px;
+
     border-radius:12px;
-    border:1px solid #ccc;
+
+    border:none;
 }
 
 button{
-    background:#007AFF;
-    color:white;
-    border:none;
-    font-weight:400;
 
-    user-select:none;
-    -webkit-user-select:none;
-    -webkit-touch-callout:none;
+    background:#007AFF;
+
+    color:white;
 
     touch-action:manipulation;
+
+    -webkit-user-select:none;
+    user-select:none;
+
+    -webkit-touch-callout:none;
 }
 
 .top-bar{
+
     display:flex;
+
     justify-content:space-between;
+
     align-items:center;
-    margin-bottom:8px;
+
     gap:8px;
+
+    margin-bottom:10px;
 }
 
 .timer{
+
     position:fixed;
+
     top:10px;
     left:10px;
-    background:black;
-    color:white;
-    padding:8px 14px;
-    border-radius:10px;
-    font-size:18px;
+
     z-index:999;
+
+    background:black;
+
+    color:white;
+
+    padding:8px 14px;
+
+    border-radius:10px;
+
+    font-size:18px;
 }
 
 .problem-grid{
+
     display:grid;
-    grid-template-columns:1fr 1fr;
+
+    grid-template-columns:
+    1fr 1fr;
+
     gap:10px;
 }
 
 .problem-box{
+
     background:white;
-    border-radius:16px;
+
+    border-radius:14px;
+
     padding:8px;
-    box-shadow:0 1px 5px rgba(0,0,0,0.08);
+
     position:relative;
-}
 
-.problem{
-    text-align:center;
-    margin-bottom:6px;
-    font-weight:300;
-}
-
-.vertical-problem{
-    display:inline-block;
-    text-align:right;
-    font-size:28px;
-    line-height:1.15;
-    font-family:monospace;
-    font-weight:300;
-}
-
-.vertical-line{
-    border-top:2px solid black;
-    margin-top:2px;
-}
-
-.horizontal-problem{
-    font-size:28px;
-    font-weight:300;
-}
-
-canvas{
-    width:100%;
-    height:135px;
-    border:1px solid #ccc;
-    border-radius:10px;
-    background:white;
-    display:block;
+    box-shadow:
+    0 1px 5px
+    rgba(0,0,0,0.08);
 
     touch-action:none;
+
     -webkit-user-select:none;
     user-select:none;
 }
 
+.problem{
+
+    text-align:center;
+
+    margin-bottom:4px;
+}
+
+.horizontal-problem{
+
+    font-size:30px;
+
+    font-weight:300;
+}
+
+.vertical-problem{
+
+    display:inline-block;
+
+    text-align:right;
+
+    font-size:30px;
+
+    line-height:1.1;
+
+    font-family:monospace;
+
+    font-weight:300;
+}
+
+.vertical-line{
+
+    border-top:2px solid black;
+
+    margin-top:2px;
+}
+
+canvas{
+
+    width:100%;
+
+    height:135px;
+
+    background:white;
+
+    border:1px solid #ccc;
+
+    border-radius:10px;
+
+    display:block;
+
+    touch-action:none;
+
+    pointer-events:auto;
+
+    -webkit-user-select:none;
+    user-select:none;
+
+    -webkit-touch-callout:none;
+}
+
 .erase-btn{
+
     background:#666;
+
     font-size:12px;
+
     padding:4px 8px;
+
     border-radius:8px;
-    min-width:auto;
 }
 
 .result-mark{
+
     position:absolute;
+
     top:5px;
     right:8px;
+
     font-size:28px;
-    font-weight:600;
+
+    font-weight:700;
 }
 
 .result-o{
@@ -173,18 +287,27 @@ canvas{
 }
 
 .test-item{
+
     background:white;
+
     padding:14px;
+
     border-radius:14px;
+
     margin-bottom:10px;
-    box-shadow:0 1px 5px rgba(0,0,0,0.08);
+
+    box-shadow:
+    0 1px 5px
+    rgba(0,0,0,0.08);
 }
 
 .retry-box{
+
     background:#fff3cd;
+
+    padding:14px;
+
     border-radius:14px;
-    padding:12px;
-    margin-top:14px;
 }
 
 </style>
@@ -192,9 +315,11 @@ canvas{
 
 <body>
 
-<div id="timer" class="timer hidden">
+<div id="timer"
+class="timer hidden">
 00:00
 </div>
+
 
 <!-- 시작 -->
 <div id="startScreen"
@@ -217,7 +342,8 @@ onclick="showTeacherScreen()">
 </div>
 
 
-<!-- 학생 설정 -->
+
+<!-- 설정 -->
 <div id="studentSetup"
 class="screen hidden">
 
@@ -310,13 +436,17 @@ class="screen hidden">
 </div>
 
 
-<!-- 학생 화면 -->
+
+<!-- 학생 -->
 <div id="studentScreen"
 class="screen hidden">
 
 <div class="top-bar">
 
-<div style="display:flex;gap:8px;">
+<div style="
+display:flex;
+gap:8px;
+">
 
 <button onclick="showProblemTab()">
 문제풀기
@@ -329,7 +459,10 @@ class="screen hidden">
 </div>
 
 <h2 id="sheetInfo"
-style="font-weight:400;font-size:18px;">
+style="
+font-weight:400;
+font-size:18px;
+">
 </h2>
 
 <button onclick="submitWorksheet()">
@@ -338,15 +471,18 @@ style="font-weight:400;font-size:18px;">
 
 </div>
 
-<!-- 문제 -->
+
+<!-- 문제탭 -->
 <div id="problemTab">
 
 <div id="problemGrid"
-class="problem-grid"></div>
+class="problem-grid">
+</div>
 
 </div>
 
-<!-- 오답노트 -->
+
+<!-- 오답탭 -->
 <div id="retryTab"
 class="hidden">
 
@@ -355,6 +491,7 @@ class="hidden">
 </div>
 
 </div>
+
 
 
 <!-- 교사 -->
@@ -378,6 +515,7 @@ class="screen hidden">
 </div>
 
 
+
 <!-- 채점 -->
 <div id="gradingScreen"
 class="screen hidden">
@@ -395,162 +533,229 @@ style="font-weight:400;">
 </div>
 
 <div id="gradingGrid"
-class="problem-grid"></div>
+class="problem-grid">
+</div>
 
 </div>
 
 
+
 <script type="module">
 
-import { initializeApp }
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+initializeApp
+}
+from
+"https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
 import {
+
 getDatabase,
 ref,
 push,
 set,
 onValue,
 update
+
 }
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+from
+"https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 
-// Firebase
+
+// firebase
 const firebaseConfig = {
 
-apiKey:"AIzaSyByzHhGCTA2yE89tYCeOkhJQ1PiyPJ9Csk",
+apiKey:
+"AIzaSyByzHhGCTA2yE89tYCeOkhJQ1PiyPJ9Csk",
 
-authDomain:"math-98dc8.firebaseapp.com",
+authDomain:
+"math-98dc8.firebaseapp.com",
 
 databaseURL:
 "https://math-98dc8-default-rtdb.firebaseio.com",
 
-projectId:"math-98dc8",
+projectId:
+"math-98dc8",
 
 storageBucket:
 "math-98dc8.firebasestorage.app",
 
-messagingSenderId:"998893080786",
+messagingSenderId:
+"998893080786",
 
 appId:
 "1:998893080786:web:fc2ce7af37e3bd0cd85d0b",
 
-measurementId:"G-TC28EDFTWR"
+measurementId:
+"G-TC28EDFTWR"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+const app =
+initializeApp(firebaseConfig);
+
+const db =
+getDatabase(app);
+
 
 
 // 상태
 let startTime = 0;
+
 let timerInterval;
+
 let problems = [];
+
 let canvases = [];
+
 let retryProblems = [];
 
 let currentSheet = 1;
+
 let totalSheets = 5;
+
 
 
 // 화면
 const startScreen =
-document.getElementById("startScreen");
+document.getElementById(
+"startScreen"
+);
 
 const studentSetup =
-document.getElementById("studentSetup");
+document.getElementById(
+"studentSetup"
+);
 
 const studentScreen =
-document.getElementById("studentScreen");
+document.getElementById(
+"studentScreen"
+);
 
 const teacherScreen =
-document.getElementById("teacherScreen");
+document.getElementById(
+"teacherScreen"
+);
 
 const gradingScreen =
-document.getElementById("gradingScreen");
+document.getElementById(
+"gradingScreen"
+);
 
 
-// 화면전환
+
+// 화면 숨김
 function hideAll(){
 
 startScreen.classList.add("hidden");
+
 studentSetup.classList.add("hidden");
+
 studentScreen.classList.add("hidden");
+
 teacherScreen.classList.add("hidden");
+
 gradingScreen.classList.add("hidden");
 }
 
-window.showStudentSetup = function(){
+
+
+// 시작화면
+window.showStudentSetup =
+function(){
 
 hideAll();
 
-studentSetup.classList.remove("hidden");
+studentSetup.classList.remove(
+"hidden"
+);
 }
 
-window.showTeacherScreen = function(){
+
+window.showTeacherScreen =
+function(){
 
 hideAll();
 
-teacherScreen.classList.remove("hidden");
+teacherScreen.classList.remove(
+"hidden"
+);
 
 loadSubmissionList();
 }
 
-window.goHome = function(){
+
+window.goHome =
+function(){
 
 hideAll();
 
-document.getElementById("timer")
+document
+.getElementById("timer")
 .classList.add("hidden");
 
-startScreen.classList.remove("hidden");
+startScreen.classList.remove(
+"hidden"
+);
 }
 
-window.backToTeacher = function(){
+
+window.backToTeacher =
+function(){
 
 hideAll();
 
-teacherScreen.classList.remove("hidden");
+teacherScreen.classList.remove(
+"hidden"
+);
 }
+
 
 
 // 탭
-window.showProblemTab = function(){
+window.showProblemTab =
+function(){
 
-document.getElementById(
-"problemTab"
-).classList.remove("hidden");
+document
+.getElementById("problemTab")
+.classList.remove("hidden");
 
-document.getElementById(
-"retryTab"
-).classList.add("hidden");
+document
+.getElementById("retryTab")
+.classList.add("hidden");
 }
 
-window.showRetryTab = function(){
 
-document.getElementById(
-"problemTab"
-).classList.add("hidden");
+window.showRetryTab =
+function(){
 
-document.getElementById(
-"retryTab"
-).classList.remove("hidden");
+document
+.getElementById("problemTab")
+.classList.add("hidden");
+
+document
+.getElementById("retryTab")
+.classList.remove("hidden");
 }
+
 
 
 // 시작
-window.startStudentMode = function(){
+window.startStudentMode =
+function(){
 
 currentSheet = 1;
 
 totalSheets =
 Number(
-document.getElementById("sheetCount").value
+document.getElementById(
+"sheetCount"
+).value
 );
 
 startWorksheet();
-};
+}
+
 
 
 // 시험 시작
@@ -558,18 +763,25 @@ function startWorksheet(){
 
 hideAll();
 
-studentScreen.classList.remove("hidden");
+studentScreen.classList.remove(
+"hidden"
+);
 
 showProblemTab();
 
-document.getElementById("timer")
+document
+.getElementById("timer")
 .classList.remove("hidden");
 
-document.getElementById("sheetInfo")
+document
+.getElementById("sheetInfo")
 .innerText =
-`${currentSheet} / ${totalSheets} 장`;
+`${currentSheet}
+/
+${totalSheets} 장`;
 
-startTime = Date.now();
+startTime =
+Date.now();
 
 startTimer();
 
@@ -579,25 +791,34 @@ listenRetry();
 }
 
 
+
 // 타이머
 function startTimer(){
 
-clearInterval(timerInterval);
+clearInterval(
+timerInterval
+);
 
-timerInterval = setInterval(()=>{
+timerInterval =
+setInterval(()=>{
 
 const sec =
-Math.floor((Date.now()-startTime)/1000);
+Math.floor(
+(Date.now()-startTime)
+/1000
+);
 
 const min =
-String(Math.floor(sec/60))
-.padStart(2,"0");
+String(
+Math.floor(sec/60)
+).padStart(2,"0");
 
 const s =
 String(sec%60)
 .padStart(2,"0");
 
-document.getElementById("timer")
+document
+.getElementById("timer")
 .innerText =
 `${min}:${s}`;
 
@@ -605,43 +826,70 @@ document.getElementById("timer")
 }
 
 
+
 // 숫자
 function randomDigits(d){
 
-if(d===1)
-return Math.floor(Math.random()*9)+1;
+if(d===1){
 
-if(d===2)
-return Math.floor(Math.random()*90)+10;
-
-return Math.floor(Math.random()*900)+100;
+return Math.floor(
+Math.random()*9
+)+1;
 }
+
+if(d===2){
+
+return Math.floor(
+Math.random()*90
+)+10;
+}
+
+return Math.floor(
+Math.random()*900
+)+100;
+}
+
 
 
 // 문제 생성
 function generateWorksheet(){
 
 problems = [];
+
 canvases = [];
 
 const grid =
-document.getElementById("problemGrid");
+document.getElementById(
+"problemGrid"
+);
 
 grid.innerHTML = "";
 
 const op =
-document.getElementById("operationType").value;
+document.getElementById(
+"operationType"
+).value;
 
 const digit =
-document.getElementById("digitType").value;
+document.getElementById(
+"digitType"
+).value;
 
 const layout =
-document.getElementById("layoutType").value;
+document.getElementById(
+"layoutType"
+).value;
 
-const parts = digit.split("_");
+const parts =
+digit.split("_");
 
-const d1 = Number(parts[0]);
-const d2 = Number(parts[1]);
+const d1 =
+Number(parts[0]);
+
+const d2 =
+Number(parts[1]);
+
+
 
 for(let i=0;i<8;i++){
 
@@ -650,11 +898,13 @@ let a,b,answer;
 while(true){
 
 a = randomDigits(d1);
+
 b = randomDigits(d2);
 
 if(op==="add"){
 
 answer = a+b;
+
 break;
 
 }else{
@@ -662,6 +912,7 @@ break;
 if(a>=b){
 
 answer = a-b;
+
 break;
 }
 }
@@ -677,6 +928,8 @@ document.createElement("div");
 div.className =
 "problem-box";
 
+
+
 let html = "";
 
 if(layout==="vertical"){
@@ -690,7 +943,9 @@ ${String(a).padStart(3," ")}
 </div>
 
 <div>
-${op==="add"?"+":"-"}
+${op==="add"
+?"+":"-"}
+
 ${String(b).padStart(3," ")}
 </div>
 
@@ -706,14 +961,19 @@ html =
 <div class="horizontal-problem">
 
 ${a}
-${op==="add"?"+":"-"}
+
+${op==="add"
+?"+":"-"}
 
 ${b}
+
 =
 
 </div>
 `;
 }
+
+
 
 div.innerHTML =
 `
@@ -728,8 +988,7 @@ margin-bottom:4px;
 ">
 
 <button
-class="erase-btn"
-data-index="${i}">
+class="erase-btn">
 
 지우기
 
@@ -746,20 +1005,30 @@ grid.appendChild(div);
 
 setupCanvas(`canvas${i}`);
 
+
+
 const eraseBtn =
-div.querySelector(".erase-btn");
+div.querySelector(
+".erase-btn"
+);
 
 eraseBtn.addEventListener(
 "pointerdown",
 (e)=>{
 
 e.preventDefault();
+
 e.stopPropagation();
 
 clearOneCanvas(i);
-});
+
+},
+{passive:false}
+);
+
 }
 }
+
 
 
 // 지우기
@@ -782,6 +1051,7 @@ canvas.height
 }
 
 
+
 // 캔버스
 function setupCanvas(id){
 
@@ -796,11 +1066,17 @@ canvas.offsetWidth;
 
 canvas.height = 135;
 
-ctx.lineWidth = 3;
+ctx.lineWidth = 2.5;
+
 ctx.lineCap = "round";
+
+ctx.lineJoin = "round";
+
 ctx.strokeStyle = "black";
 
 let drawing = false;
+
+
 
 function pos(e){
 
@@ -815,20 +1091,26 @@ y:e.clientY - rect.top
 };
 }
 
-canvas.addEventListener(
-"contextmenu",
-(e)=>{
-e.preventDefault();
-}
-);
 
+
+function stopEvent(e){
+
+e.preventDefault();
+
+e.stopPropagation();
+}
+
+
+
+// 시작
 canvas.addEventListener(
 "pointerdown",
 (e)=>{
 
+stopEvent(e);
+
 if(
-e.pointerType !== "pen" &&
-e.pointerType !== "mouse"
+e.pointerType !== "pen"
 ){
 return;
 }
@@ -840,38 +1122,108 @@ const p = pos(e);
 ctx.beginPath();
 
 ctx.moveTo(p.x,p.y);
-}
+
+},
+{passive:false}
 );
 
+
+
+// 이동
 canvas.addEventListener(
 "pointermove",
 (e)=>{
 
 if(!drawing) return;
 
-e.preventDefault();
+stopEvent(e);
 
 const p = pos(e);
 
 ctx.lineTo(p.x,p.y);
 
 ctx.stroke();
-}
+
+},
+{passive:false}
 );
 
+
+
+// 종료
 canvas.addEventListener(
 "pointerup",
-()=>{
+(e)=>{
+
+stopEvent(e);
 
 drawing = false;
-}
+
+},
+{passive:false}
 );
+
 
 canvas.addEventListener(
 "pointerleave",
-()=>{
+(e)=>{
+
+stopEvent(e);
 
 drawing = false;
+
+},
+{passive:false}
+);
+
+
+canvas.addEventListener(
+"pointercancel",
+(e)=>{
+
+stopEvent(e);
+
+drawing = false;
+
+},
+{passive:false}
+);
+
+
+
+// 드래그방지
+canvas.addEventListener(
+"contextmenu",
+(e)=>{
+stopEvent(e);
+}
+);
+
+canvas.addEventListener(
+"dragstart",
+(e)=>{
+stopEvent(e);
+}
+);
+
+canvas.addEventListener(
+"gesturestart",
+(e)=>{
+stopEvent(e);
+}
+);
+
+canvas.addEventListener(
+"gesturechange",
+(e)=>{
+stopEvent(e);
+}
+);
+
+canvas.addEventListener(
+"gestureend",
+(e)=>{
+stopEvent(e);
 }
 );
 
@@ -879,14 +1231,20 @@ canvases.push(canvas);
 }
 
 
+
 // 제출
 window.submitWorksheet =
 async function(){
 
-clearInterval(timerInterval);
+clearInterval(
+timerInterval
+);
 
 const sec =
-Math.floor((Date.now()-startTime)/1000);
+Math.floor(
+(Date.now()-startTime)
+/1000
+);
 
 const images =
 canvases.map(
@@ -898,32 +1256,42 @@ new Date();
 
 const title =
 `${now.getFullYear()}-${
-String(now.getMonth()+1)
-.padStart(2,"0")
+String(
+now.getMonth()+1
+).padStart(2,"0")
 }-${
-String(now.getDate())
-.padStart(2,"0")
+String(
+now.getDate()
+).padStart(2,"0")
 }
 ${
-String(now.getHours())
-.padStart(2,"0")
+String(
+now.getHours()
+).padStart(2,"0")
 }:${
-String(now.getMinutes())
-.padStart(2,"0")
+String(
+now.getMinutes()
+).padStart(2,"0")
 }`;
 
+
 const submitRef =
-push(ref(db,"submissions"));
+push(
+ref(db,"submissions")
+);
 
-await set(submitRef,{
-
+await set(
+submitRef,
+{
 title,
 time:sec,
 problems,
 images,
 results:[],
 checked:false
-});
+}
+);
+
 
 if(currentSheet < totalSheets){
 
@@ -933,18 +1301,21 @@ startWorksheet();
 
 }else{
 
-alert("모든 문제 완료");
+alert("완료");
 
 goHome();
 }
 };
 
 
+
 // 제출목록
 function loadSubmissionList(){
 
 const list =
-document.getElementById("submissionList");
+document.getElementById(
+"submissionList"
+);
 
 onValue(
 ref(db,"submissions"),
@@ -1012,7 +1383,8 @@ list.appendChild(div);
 }
 
 
-// 채점열기
+
+// 채점화면
 window.openGrading =
 function(key){
 
@@ -1027,17 +1399,21 @@ document.getElementById(
 );
 
 onValue(
-ref(db,
-`submissions/${key}`),
+ref(
+db,
+`submissions/${key}`
+),
 
 (snapshot)=>{
 
 const item =
 snapshot.val();
 
-document.getElementById(
+document
+.getElementById(
 "gradingTitle"
-).innerText =
+)
+.innerText =
 item.title;
 
 grid.innerHTML = "";
@@ -1081,6 +1457,7 @@ X
 `;
 }
 
+
 div.innerHTML =
 `
 ${mark}
@@ -1090,6 +1467,7 @@ horizontal-problem
 ">
 
 ${p.a}
+
 ${p.op==="add"
 ?"+":"-"}
 
@@ -1151,6 +1529,7 @@ grid.appendChild(div);
 };
 
 
+
 // 채점
 window.gradeSubmission =
 async function(
@@ -1160,7 +1539,8 @@ result
 ){
 
 const target =
-ref(db,
+ref(
+db,
 `submissions/${key}`
 );
 
@@ -1178,17 +1558,20 @@ data.results || [];
 results[index] =
 result;
 
-await update(target,{
-
+await update(
+target,
+{
 checked:true,
 results
-});
+}
+);
 
 },
 
 {onlyOnce:true}
 );
 };
+
 
 
 // 오답노트
@@ -1238,9 +1621,7 @@ if(retryProblems.length===0){
 retryArea.innerHTML =
 `
 <div class="card">
-
-오답 문제가 없습니다
-
+오답 없음
 </div>
 `;
 
@@ -1248,16 +1629,15 @@ return;
 }
 
 
-const wrap =
-document.createElement("div");
-
 let html =
 `
-<div class="card">
+<div class="
+retry-box
+">
 
 <h3 style="
 font-weight:400;
-margin-bottom:12px;
+margin-bottom:10px;
 ">
 
 오답노트
@@ -1284,10 +1664,12 @@ horizontal-problem
 ">
 
 ${p.a}
+
 ${p.op==="add"
 ?"+":"-"}
 
 ${p.b}
+
 =
 
 </div>
@@ -1303,7 +1685,7 @@ ${index}
 )
 ">
 
-다시 풀기
+다시풀기
 
 </button>
 
@@ -1318,12 +1700,12 @@ html += `
 </div>
 `;
 
-wrap.innerHTML = html;
-
-retryArea.appendChild(wrap);
+retryArea.innerHTML =
+html;
 
 });
 }
+
 
 
 // 오답 다시풀기
@@ -1343,6 +1725,7 @@ document.getElementById(
 grid.innerHTML = "";
 
 problems = [p];
+
 canvases = [];
 
 const div =
@@ -1358,10 +1741,12 @@ horizontal-problem
 ">
 
 ${p.a}
+
 ${p.op==="add"
 ?"+":"-"}
 
 ${p.b}
+
 =
 
 </div>
@@ -1402,21 +1787,30 @@ submitRetry()
 
 grid.appendChild(div);
 
-setupCanvas("retryCanvas0");
+setupCanvas(
+"retryCanvas0"
+);
 
 const eraseBtn =
-div.querySelector(".erase-btn");
+div.querySelector(
+".erase-btn"
+);
 
 eraseBtn.addEventListener(
 "pointerdown",
 (e)=>{
 
 e.preventDefault();
+
 e.stopPropagation();
 
 clearOneCanvas(0);
-});
-}
+
+},
+{passive:false}
+);
+};
+
 
 
 // 오답 제출
@@ -1429,27 +1823,26 @@ c=>c.toDataURL()
 );
 
 const submitRef =
-push(ref(db,"submissions"));
+push(
+ref(db,"submissions")
+);
 
-await set(submitRef,{
-
+await set(
+submitRef,
+{
 title:"오답 다시풀기",
-
 time:0,
-
 problems,
-
 images,
-
 results:[],
-
 checked:false
-});
+}
+);
 
-alert("오답 제출 완료");
+alert("제출 완료");
 
 goHome();
-}
+};
 
 </script>
 
