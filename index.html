@@ -34,13 +34,6 @@ html,body{
 
     overscroll-behavior:none;
 
-    touch-action:none;
-
-    -webkit-user-select:none;
-    user-select:none;
-
-    -webkit-touch-callout:none;
-
     position:fixed;
 }
 
@@ -122,13 +115,6 @@ button{
     background:#007AFF;
 
     color:white;
-
-    touch-action:manipulation;
-
-    -webkit-user-select:none;
-    user-select:none;
-
-    -webkit-touch-callout:none;
 }
 
 .top-bar{
@@ -187,8 +173,6 @@ button{
     box-shadow:
     0 1px 5px
     rgba(0,0,0,0.08);
-
-    touch-action:none;
 }
 
 .problem{
@@ -239,10 +223,8 @@ canvas{
 
     display:block;
 
-    touch-action:none;
-
-    -webkit-user-select:none;
-    user-select:none;
+    /* 팜리젝션 제거 */
+    touch-action:auto;
 }
 
 .erase-btn{
@@ -415,10 +397,7 @@ class="screen hidden">
 <br>
 
 <button
-style="
-background:#ff9500;
-"
-
+style="background:#ff9500"
 onclick="openRetryMode()">
 
 오답노트 풀기
@@ -449,7 +428,6 @@ font-size:18px;
 </button>
 
 </div>
-
 
 <div id="problemGrid"
 class="problem-grid">
@@ -561,72 +539,48 @@ initializeApp(firebaseConfig);
 const db =
 getDatabase(app);
 
-
-
-// 상태
 let startTime = 0;
-
 let timerInterval;
 
 let problems = [];
-
 let canvases = [];
-
 let retryProblems = [];
 
 let currentSheet = 1;
-
 let totalSheets = 5;
 
 let retryMode = false;
 
 
 
-// 화면
 const startScreen =
-document.getElementById(
-"startScreen"
-);
+document.getElementById("startScreen");
 
 const studentSetup =
-document.getElementById(
-"studentSetup"
-);
+document.getElementById("studentSetup");
 
 const studentScreen =
-document.getElementById(
-"studentScreen"
-);
+document.getElementById("studentScreen");
 
 const teacherScreen =
-document.getElementById(
-"teacherScreen"
-);
+document.getElementById("teacherScreen");
 
 const gradingScreen =
-document.getElementById(
-"gradingScreen"
-);
+document.getElementById("gradingScreen");
 
 
 
-// 숨기기
 function hideAll(){
 
 startScreen.classList.add("hidden");
-
 studentSetup.classList.add("hidden");
-
 studentScreen.classList.add("hidden");
-
 teacherScreen.classList.add("hidden");
-
 gradingScreen.classList.add("hidden");
 }
 
 
 
-// 시작화면
 window.showStudentSetup =
 function(){
 
@@ -680,7 +634,6 @@ teacherScreen.classList.remove(
 
 
 
-// 학생 시작
 window.startStudentMode =
 function(){
 
@@ -700,7 +653,6 @@ startWorksheet();
 
 
 
-// 오답노트 시작
 window.openRetryMode =
 function(){
 
@@ -726,7 +678,6 @@ generateRetryWorksheet();
 
 
 
-// 시험 시작
 function startWorksheet(){
 
 hideAll();
@@ -756,12 +707,9 @@ generateWorksheet();
 
 
 
-// 타이머
 function startTimer(){
 
-clearInterval(
-timerInterval
-);
+clearInterval(timerInterval);
 
 timerInterval =
 setInterval(()=>{
@@ -791,7 +739,6 @@ document
 
 
 
-// 랜덤
 function randomDigits(d){
 
 if(d===1){
@@ -815,11 +762,9 @@ Math.random()*900
 
 
 
-// 문제 생성
 function generateWorksheet(){
 
 problems = [];
-
 canvases = [];
 
 const grid =
@@ -853,8 +798,6 @@ Number(parts[0]);
 const d2 =
 Number(parts[1]);
 
-
-
 for(let i=0;i<8;i++){
 
 let a,b,answer;
@@ -862,7 +805,6 @@ let a,b,answer;
 while(true){
 
 a = randomDigits(d1);
-
 b = randomDigits(d2);
 
 if(op==="add"){
@@ -873,7 +815,6 @@ const onesB = b % 10;
 if(onesA + onesB >= 10){
 
 answer = a+b;
-
 break;
 }
 
@@ -882,7 +823,6 @@ break;
 if(a>=b){
 
 answer = a-b;
-
 break;
 }
 }
@@ -906,11 +846,9 @@ layout
 
 
 
-// 오답문제 생성
 function generateRetryWorksheet(){
 
 problems = [];
-
 canvases = [];
 
 const grid =
@@ -925,9 +863,7 @@ if(retryProblems.length===0){
 grid.innerHTML =
 `
 <div class="card">
-
 오답 문제가 없습니다
-
 </div>
 `;
 
@@ -953,7 +889,6 @@ p.op,
 
 
 
-// 문제 박스
 function createProblemBox(
 grid,
 index,
@@ -1012,8 +947,6 @@ ${b}
 `;
 }
 
-
-
 div.innerHTML =
 `
 <div class="problem">
@@ -1044,31 +977,19 @@ grid.appendChild(div);
 
 setupCanvas(`canvas${index}`);
 
-
-
 const eraseBtn =
-div.querySelector(
-".erase-btn"
-);
+div.querySelector(".erase-btn");
 
 eraseBtn.addEventListener(
-"pointerdown",
-(e)=>{
-
-e.preventDefault();
-
-e.stopPropagation();
-
+"click",
+()=>{
 clearOneCanvas(index);
-
-},
-{passive:false}
+}
 );
 }
 
 
 
-// 지우기
 function clearOneCanvas(index){
 
 const canvas =
@@ -1089,7 +1010,6 @@ canvas.height
 
 
 
-// 캔버스
 function setupCanvas(id){
 
 const canvas =
@@ -1113,8 +1033,6 @@ ctx.strokeStyle = "black";
 
 let drawing = false;
 
-
-
 function pos(e){
 
 const rect =
@@ -1128,29 +1046,9 @@ y:e.clientY - rect.top
 };
 }
 
-
-
-function stopEvent(e){
-
-e.preventDefault();
-
-e.stopPropagation();
-}
-
-
-
-// 시작
 canvas.addEventListener(
 "pointerdown",
 (e)=>{
-
-stopEvent(e);
-
-if(
-e.pointerType !== "pen"
-){
-return;
-}
 
 drawing = true;
 
@@ -1159,87 +1057,36 @@ const p = pos(e);
 ctx.beginPath();
 
 ctx.moveTo(p.x,p.y);
-
-},
-{passive:false}
+}
 );
 
-
-
-// 이동
 canvas.addEventListener(
 "pointermove",
 (e)=>{
 
 if(!drawing) return;
 
-stopEvent(e);
-
 const p = pos(e);
 
 ctx.lineTo(p.x,p.y);
 
 ctx.stroke();
-
-},
-{passive:false}
-);
-
-
-
-// 종료
-canvas.addEventListener(
-"pointerup",
-(e)=>{
-
-stopEvent(e);
-
-drawing = false;
-
-},
-{passive:false}
-);
-
-
-canvas.addEventListener(
-"pointerleave",
-(e)=>{
-
-stopEvent(e);
-
-drawing = false;
-
-},
-{passive:false}
-);
-
-
-canvas.addEventListener(
-"pointercancel",
-(e)=>{
-
-stopEvent(e);
-
-drawing = false;
-
-},
-{passive:false}
-);
-
-
-
-// 방지
-canvas.addEventListener(
-"contextmenu",
-(e)=>{
-stopEvent(e);
 }
 );
 
 canvas.addEventListener(
-"dragstart",
-(e)=>{
-stopEvent(e);
+"pointerup",
+()=>{
+
+drawing = false;
+}
+);
+
+canvas.addEventListener(
+"pointerleave",
+()=>{
+
+drawing = false;
 }
 );
 
@@ -1248,13 +1095,10 @@ canvases.push(canvas);
 
 
 
-// 제출
 window.submitWorksheet =
 async function(){
 
-clearInterval(
-timerInterval
-);
+clearInterval(timerInterval);
 
 const sec =
 retryMode
@@ -1312,7 +1156,6 @@ checked:false
 }
 );
 
-
 if(retryMode){
 
 alert("오답노트 제출 완료");
@@ -1321,7 +1164,6 @@ goHome();
 
 return;
 }
-
 
 if(currentSheet < totalSheets){
 
@@ -1339,7 +1181,6 @@ goHome();
 
 
 
-// 제출목록
 function loadSubmissionList(){
 
 const list =
@@ -1378,32 +1219,25 @@ div.className =
 div.innerHTML =
 `
 <div>
-
 ${item.title}
-
 </div>
 
 <div style="
 margin-top:6px;
 font-size:14px;
 ">
-
 풀이 시간:
 ${item.time}초
-
 </div>
 
 <button
 style="margin-top:10px"
-
 onclick="
 openGrading(
 '${key}'
 )
 ">
-
 채점하기
-
 </button>
 `;
 
@@ -1414,7 +1248,6 @@ list.appendChild(div);
 
 
 
-// 채점화면
 window.openGrading =
 function(key){
 
@@ -1487,7 +1320,6 @@ X
 `;
 }
 
-
 div.innerHTML =
 `
 ${mark}
@@ -1522,7 +1354,6 @@ margin-top:6px;
 
 <button
 style="background:green"
-
 onclick="
 gradeSubmission(
 '${key}',
@@ -1530,14 +1361,11 @@ ${index},
 true
 )
 ">
-
 O
-
 </button>
 
 <button
 style="background:red"
-
 onclick="
 gradeSubmission(
 '${key}',
@@ -1545,9 +1373,7 @@ ${index},
 false
 )
 ">
-
 X
-
 </button>
 
 </div>
@@ -1560,7 +1386,6 @@ grid.appendChild(div);
 
 
 
-// 채점
 window.gradeSubmission =
 async function(
 key,
@@ -1606,7 +1431,6 @@ listenRetry();
 
 
 
-// 오답목록
 function listenRetry(){
 
 onValue(
